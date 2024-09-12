@@ -10,10 +10,10 @@ const router = Router();
 //temp
 router.post('/login', passport.authenticate('local'), (req, res) => {
     if(req.user){
-        res.json({sucess: true, message: "You have been successfully logged in"});
+        res.json({success: true, message: "You have been successfully logged in"});
     }
     else{
-        res.json({sucess: false, message: "Failed to log in"});
+        res.json({success: false, message: "Failed to log in"});
     }
 });
 
@@ -21,13 +21,13 @@ router.post('/register', async (req, res) => {
     const {username, password} = req.body;
     const config = await ConfigModel.findOne({});
     if(config.initialized){
-        res.json({sucess: false, message: "Registration is closed"});
+        res.json({success: false, message: "Registration is closed"});
         return;
     }
     UserModel.register(new UserModel({username: username, role: "admin"}), password, (err, user) => {
         if(err){
             console.log(err);
-            res.json({sucess: false, message: "Failed to register"});
+            res.json({success: false, message: "Failed to register"});
             return;
         }
         console.log("Config created");
@@ -39,7 +39,7 @@ router.post('/register', async (req, res) => {
 
         
         
-        res.json({sucess: true, message: "You have been successfully registered", user: user});
+        res.json({success: true, message: "You have been successfully registered", user: user});
 
     });
 
@@ -49,10 +49,10 @@ router.post('/register', async (req, res) => {
 router.get('/logout', (req, res) => {
     req.logout((err) => {
         if(err){
-            return res.json({sucess: false, message: "Failed to log out"});
+            return res.json({success: false, message: "Failed to log out"});
         }
     });
-    res.json({sucess: true, message: "You have been successfully logged out"});
+    res.json({success: true, message: "You have been successfully logged out"});
 });
 
 router.get('/getUserData', async (req, res) => {
@@ -67,10 +67,12 @@ router.get('/getUserData', async (req, res) => {
     }
     
     if(req.user){
-        res.json({sucess: true, user: req.user});
+
+        const config = await ConfigModel.findOne({});
+        res.json({success: true, user: req.user, config: config});
     }
     else{
-        res.json({sucess: false, message: "You must be logged in to access this resource", user: null});   
+        res.json({success: false, message: "You must be logged in to access this resource", user: null});   
     }
 });
 

@@ -1,5 +1,5 @@
-import { db } from "./app";
-import initializeConfig from "./initializeConfig";
+import { db } from "./app.js";
+import initializeConfig from "./initializeConfig.js";
 
 
 
@@ -9,3 +9,5 @@ const reset = async () => {
     await initializeConfig();
     console.log("Reset complete");
 }
+
+export default reset;

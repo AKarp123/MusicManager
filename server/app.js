@@ -9,6 +9,7 @@ import passport from "passport";
 import UserModel from "./Models/UserModel.js";
 import MongoStore from "connect-mongo";
 import initializeConfig from "./initializeConfig.js";
+import reset from "./reset.js";
 
 const app = express();
 const port = 3000;
@@ -67,6 +68,7 @@ db.on("error", (err) => {
 db.once("open", async () => {
     console.log("Connected to MongoDB");
     await initializeConfig();
+  
 });
 
 

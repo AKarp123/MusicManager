@@ -26,7 +26,8 @@ const Register = () => {
 
         axios.post("/api/register", { username, password })
             .then((res) => {
-                setUser(res.data.user);
+                setError("User created successfully, please log in!", "success");
+                history.push("/login");
             })
             .catch((err) => {
                 console.log(err);

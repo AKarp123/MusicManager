@@ -5,6 +5,6 @@ const requireLogin = (req, res, next) => {
         next();
     }
     else {
-        res.json({sucess: false, message: "You must be logged in to access this resource"});
+        res.json({success: false, message: "You must be logged in to access this resource"});
     }
 }
