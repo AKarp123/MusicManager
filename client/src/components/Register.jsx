@@ -1,9 +1,37 @@
-import { useEffect, useState } from "react";
-import { Paper, Typography, Container, Stack, TextField } from "@mui/material";
+import { useEffect, useState, useContext } from "react";
+import { Paper, Typography, Container, Stack, TextField, Button } from "@mui/material";
+import axios from "axios";
+import UserContext from "../UserProvider";
+import ErrorContext from "../ErrorContext";
+import { useHistory } from "react-router-dom";
 
 const Register = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const { user, setUser } = useContext(UserContext);
+    const setError = useContext(ErrorContext);
+    const history = useHistory();
+
+    if(user === null) {
+        history.push("/login");
+
+    }
+
+    const register = () => {
+        if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            return;
+        }
+
+        axios.post("/api/register", { username, password })
+            .then((res) => {
+                setUser(res.data.user);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
     
 
 
@@ -39,8 +67,10 @@ const Register = () => {
                         Create your account to get started!
                     </Typography>
                     <TextField label="Username" variant="outlined" value={username} onChange={(e) => setUsername(e.target.value)}/>
-                    <TextField label="Password" variant="outlined" value={password} onChange={(e) => setPassword(e.target.value)}/>
-                        
+                    <TextField label="Password" variant="outlined" value={password} onChange={(e) => setPassword(e.target.value)} type="password"/>
+                    <TextField label="Confirm Password" variant="outlined" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password"/>
+                    <Button variant="contained" color="primary" sx={{maxWidth: "30%", alignSelf: "center"}} onClick={register}>Register</Button>
+
                 </Stack>
             </Paper>
         </Container>

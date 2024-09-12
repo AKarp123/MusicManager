@@ -68,3 +68,6 @@ db.once("open", async () => {
     console.log("Connected to MongoDB");
     await initializeConfig();
 });
+
+
+export {db};

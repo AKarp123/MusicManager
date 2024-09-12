@@ -20,6 +20,28 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
 router.post('/register', async (req, res) => {
     const {username, password} = req.body;
     const config = await ConfigModel.findOne({});
+    if(config.initialized){
+        res.json({sucess: false, message: "Registration is closed"});
+        return;
+    }
+    UserModel.register(new UserModel({username: username, role: "admin"}), password, (err, user) => {
+        if(err){
+            console.log(err);
+            res.json({sucess: false, message: "Failed to register"});
+            return;
+        }
+        console.log("Config created");
+        config.initialized = true;
+        config.save()
+        .then(() => {
+            console.log("Config saved");
+        })
+
+        
+        
+        res.json({sucess: true, message: "You have been successfully registered", user: user});
+
+    });
 
 })
 
