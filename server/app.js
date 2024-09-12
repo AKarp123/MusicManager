@@ -24,6 +24,8 @@ const __dirname = new URL(".", import.meta.url).pathname;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(express.static(join(__dirname, "../client/public")));
 app.use(express.static(join(__dirname, "../client/dist")));
 
 app.use(

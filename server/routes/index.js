@@ -1,6 +1,8 @@
 import { Router } from "express";
 import passport from "passport";
-import Config from "../Models/ConfigModel.js";
+import ConfigModel from "../Models/ConfigModel.js";
+import UserModel from "../Models/UserModel.js";
+
 
 
 const router = Router();
@@ -15,6 +17,12 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
     }
 });
 
+router.post('/register', async (req, res) => {
+    const {username, password} = req.body;
+    const config = await ConfigModel.findOne({});
+
+})
+
 //logout passport
 router.get('/logout', (req, res) => {
     req.logout((err) => {
@@ -25,8 +33,16 @@ router.get('/logout', (req, res) => {
     res.json({sucess: true, message: "You have been successfully logged out"});
 });
 
-router.get('/getUserData', (req, res) => {
-    
+router.get('/getUserData', async (req, res) => {
+    let config = await ConfigModel.findOne({});
+    if(!config.initialized) {
+        res.json({
+            success: false,
+            messsage: "Complete Configuration",
+            user: "Complete Configuration"
+        })
+        return;
+    }
     
     if(req.user){
         res.json({sucess: true, user: req.user});
