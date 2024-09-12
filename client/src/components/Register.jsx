@@ -5,18 +5,22 @@ import UserContext from "../UserProvider";
 import ErrorContext from "../ErrorContext";
 import { useHistory } from "react-router-dom";
 
+
 const Register = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const { user, setUser } = useContext(UserContext);
     const setError = useContext(ErrorContext);
     const history = useHistory();
+    const { user, setUser } = useContext(UserContext);
 
-    if(user === null) {
-        history.push("/login");
 
+    useEffect(() => {
+        if(user !== "Complete Configuration") {
+            history.replace("/")
+        }
     }
+    , [user, history])
 
     const register = () => {
         if (password !== confirmPassword) {
@@ -26,8 +30,12 @@ const Register = () => {
 
         axios.post("/api/register", { username, password })
             .then((res) => {
-                setError("User created successfully, please log in!", "success");
-                history.push("/login");
+                if(!res.data.success) {
+                    setError(res.data.message);
+                    return;
+                }
+                setError("User Created!", "success");
+                setUser(res.data.user);
             })
             .catch((err) => {
                 console.log(err);

@@ -6,17 +6,36 @@ import {
     TextField,
     Button,
 } from "@mui/material";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import UserContext from "../UserProvider";
 import axios from "axios";
 import ErrorContext from "../ErrorContext";
+
 
 const Login = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const { user, setUser } = useContext(UserContext);
     const setError = useContext(ErrorContext);
+    
+    const history = useHistory();
+    const { from } = location.state || { from: { pathname: "/" } };
+
+
+    useEffect(() => {
+        if(user === "Complete Configuration") {
+            history.replace("/register")
+            return;
+        }
+    
+        else if(user) {
+            history.replace(from)
+            return;
+        }
+    }, [user, from, history])
+
+    // console.log("HELLO")
 
     const login = () => {
         
@@ -29,18 +48,17 @@ const Login = () => {
                 }
                 setUser(res.data.user);
                 setError("You have been successfully logged in", "success");
+                history.replace("/")
             })
             .catch((err) => {
                 console.log(err);
             });
     };
 
-    const history = useHistory();
-    const { from } = location.state || { from: { pathname: "/" } };
 
-    if (user !== null) {
-        history.push(from);
-    }
+
+
+   
 
     return (
         <Container

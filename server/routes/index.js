@@ -10,7 +10,7 @@ const router = Router();
 //temp
 router.post('/login', passport.authenticate('local'), (req, res) => {
     if(req.user){
-        res.json({success: true, message: "You have been successfully logged in"});
+        res.json({success: true, message: "You have been successfully logged in", user: req.user});
     }
     else{
         res.json({success: false, message: "Failed to log in"});

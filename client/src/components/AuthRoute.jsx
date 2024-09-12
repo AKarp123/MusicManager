@@ -5,11 +5,7 @@ import { useHistory } from "react-router-dom";
 
 const AuthRoute = ({ component: Component, ...rest }) => {
     const { user } = useContext(UserContext);
-    let history = useHistory();
 
-    if (user === "Loading") {
-        return <></>;
-    }
 
     
 
@@ -17,7 +13,7 @@ const AuthRoute = ({ component: Component, ...rest }) => {
         <Route
             {...rest}
             render={(props) =>
-                user ? (
+                (user && user !== "Complete Configuration") ? (
                     <Component {...props} />
                 ) : (
                     <Redirect

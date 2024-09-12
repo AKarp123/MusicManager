@@ -67,7 +67,9 @@ db.on("error", (err) => {
 
 db.once("open", async () => {
     console.log("Connected to MongoDB");
-    await initializeConfig();
+    // await initializeConfig();
+    reset();
+
   
 });
 
