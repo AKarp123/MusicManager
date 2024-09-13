@@ -34,7 +34,7 @@ app.use(
         secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
-        cookie: { maxAge: 60000 },
+        cookie: { maxAge: 1000 * 60 * 60 * 24 },
         store: MongoStore.create({
             mongoUrl:
                 process.env.NODE_ENV === "production"
@@ -68,7 +68,7 @@ db.on("error", (err) => {
 db.once("open", async () => {
     console.log("Connected to MongoDB");
     // await initializeConfig();
-    reset();
+    // reset();
 
   
 });

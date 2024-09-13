@@ -8,3 +8,5 @@ const requireLogin = (req, res, next) => {
         res.json({success: false, message: "You must be logged in to access this resource"});
     }
 }
+
+export default requireLogin;

@@ -2,10 +2,13 @@ import { Router } from "express";
 import passport from "passport";
 import ConfigModel from "../Models/ConfigModel.js";
 import UserModel from "../Models/UserModel.js";
+import fileRouter from "./FileRouter.js";
 
 
 
 const router = Router();
+
+
 
 //temp
 router.post('/login', passport.authenticate('local'), (req, res) => {
@@ -75,5 +78,8 @@ router.get('/getUserData', async (req, res) => {
         res.json({success: false, message: "You must be logged in to access this resource", user: null});   
     }
 });
+
+
+router.use('/', fileRouter);
 
 export default router;
