@@ -11,9 +11,10 @@ const router = Router();
 
 
 //temp
-router.post('/login', passport.authenticate('local'), (req, res) => {
+router.post('/login', passport.authenticate('local'), async (req, res) => {
     if(req.user){
-        res.json({success: true, message: "You have been successfully logged in", user: req.user});
+        const config = await ConfigModel.findOne({});
+        res.json({success: true, message: "You have been successfully logged in", user: req.user, config: config});
     }
     else{
         res.json({success: false, message: "Failed to log in"});

@@ -12,7 +12,7 @@ export const UserProvider = ({ children }) => {
         axios
             .get("/api/getUserData")
             .then((res) => {
-                setUser(res.data.user);
+                setUser({user: {...res.data.user}, config: {...res.data.config}});
             })
             .catch((err) => {
                 console.log(err);
@@ -26,6 +26,7 @@ export const UserProvider = ({ children }) => {
         return <></>;
     }
     
+
 
     return (
         <UserContext.Provider value={{ user, setUser }}>

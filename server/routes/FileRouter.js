@@ -7,18 +7,13 @@ import os from "os";
 
 const fileRouter = Router();
 
-fileRouter.get("/getFileDirectory", requireLogin, async (req, res) => {
+fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
     const config = await ConfigModel.findOne({});
 
     const { directory } = req.query;
 
     if (config.mediaFilePath !== "") {
-        let userDirectory;
-        if (directory === null) {
-            userDirectory = config.mediaFilePath;
-        } else {
-            userDirectory = path.join(config.mediaFilePath, directory);
-        }
+        let userDirectory = path.join(os.homedir(), config.mediaFilePath, directory ? directory : ""); //media server path + subdirectory
         fs.readdir(userDirectory, { withFileTypes: true }, (err, files) => {
             if (err) {
                 res.json({
@@ -35,8 +30,11 @@ fileRouter.get("/getFileDirectory", requireLogin, async (req, res) => {
 
             res.json({ success: true, directories: directories });
         });
+        return;
     }
 
+
+    //initial file config setup
     let userDirectory = path.join(os.homedir(), directory ? directory : "");
     fs.readdir(userDirectory, { withFileTypes: true }, (err, files) => {
         if (err) {
@@ -56,10 +54,10 @@ fileRouter.get("/getFileDirectory", requireLogin, async (req, res) => {
     });
 });
 
-fileRouter.post("/setFileDirectory", requireLogin, async (req, res) => {
-    const { fileDirectory } = req.body;
+fileRouter.post("/setFilePath", requireLogin, async (req, res) => {
+    const { filePath } = req.body;
     const config = await ConfigModel.findOne({});
-    config.mediaFilePath = fileDirectory;
+    config.mediaFilePath = filePath;
     await config.save();
     res.json({ success: true, message: "File directory set" });
 });

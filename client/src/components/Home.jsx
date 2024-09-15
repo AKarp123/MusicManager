@@ -1,13 +1,36 @@
 import PageBackdrop from "./PageBackdrop";
-import { Typography } from "@mui/material";
+import { Container, Divider, Typography } from "@mui/material";
+import FileExplorer from "./FileViewer/FileExplorer";
+import Onboard from "./Onboard";
+import UserContext from "../UserProvider";
+import { useContext } from "react";
 
 const Home = () => {
-    return (
-        <div>
+    const { user } = useContext(UserContext);
+
+    console.log(user);
+
+    if (user.config.mediaFilePath === "") {
+        return (
             <PageBackdrop>
-                <Typography variant="h3" sx={{textAlign: "center"}}>Music Manager!</Typography>
+                <Typography variant="h3" sx={{ textAlign: "center" }}>
+                    Music Manager
+                </Typography>
+                <Onboard />
             </PageBackdrop>
-        </div>
+        );
+    }
+
+    return (
+        <PageBackdrop>
+            <Typography variant="h3" sx={{ textAlign: "center" }}>
+                Music Manager
+            </Typography>
+            <Divider sx={{ margin: "10px 0" }} />
+            <Container>
+                <FileExplorer />
+            </Container>
+        </PageBackdrop>
     );
 };
 
