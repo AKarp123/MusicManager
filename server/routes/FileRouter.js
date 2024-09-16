@@ -72,13 +72,11 @@ fileRouter.post(
     upload.array("files", 100),
     async (req, res) => {
 
+        console.log(req.files)
 
         //check if temp/sessionid exists otherwise make it
         try {
-            const directoryName = req.body.relativePaths
-                ? req.body.relativePaths[0].split("/")[0]
-                : null;
-
+            
             // console.log("Uploaded directory name:", directoryName);
 
             const filePaths = req.files.map(
@@ -91,5 +89,41 @@ fileRouter.post(
         // res.json({ success: true, message: "Folder uploaded" });
     }
 );
+
+// fileRouter.post("/upload", requireLogin, upload.array("files"), (req, res) => {
+//     try {
+//         const relativePaths = Object.values(req.body.relativePaths); // Extract relative paths as an array
+//         const uploadedFiles = req.files; // Array of uploaded files
+
+//         // Check if files were uploaded
+//         if (!uploadedFiles) {
+//             return res.status(400).json({ message: "No files uploaded" });
+//         }
+
+//         // Loop over each file and save it to the appropriate folder
+//         uploadedFiles.forEach((file, index) => {
+//             const relativePath = relativePaths[index];
+//             const targetDir = path.join(
+//                 __dirname,
+//                 "temp",
+//                 path.dirname(relativePath)
+//             ); // Construct the target directory
+//             const targetFile = path.join(__dirname, "temp", relativePath); // Full path to the file
+
+//             // Create the target directory if it doesn't exist
+//             createDirectory(targetDir);
+
+//             // Save the file to the correct location
+//             fs.writeFileSync(targetFile, file.buffer); // Use file.buffer since we are using memoryStorage in multer
+//         });
+
+//         res.json({
+//             message:
+//                 "Files uploaded and saved to respective directories successfully!",
+//         });
+//     } catch (error) {
+//         res.status(500).json({ message: "File upload failed", error });
+//     }
+// });
 
 export default fileRouter;

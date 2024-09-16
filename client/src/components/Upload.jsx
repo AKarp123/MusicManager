@@ -12,6 +12,7 @@ const Upload = () => {
     const handleUpdateFiles = (fileItems) => {
         const files = fileItems.map((fileItem) => {
             if (fileItem.file) {
+                console.log(fileItem.file.webkitRelativePath);
                 return {
                     file: fileItem.file,
                     relativePath:
@@ -29,13 +30,16 @@ const Upload = () => {
 
         let relativePath = files[0].relativePath.split("/")[0];
 
+
         // Append each file along with its relative path to the FormData
         files.forEach(({ file, relativePath }, index) => {
+            
+            formData.set("relativePaths", relativePath);
             formData.append("files", file); // Append the file itself
-            formData.append(`relativePaths[${index}]`, relativePath);
+            
           // Append the relative path
         });
-            
+          
         // Send the request to the server
         console.log(formData)
         

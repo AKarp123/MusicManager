@@ -6,7 +6,7 @@ import fs from "fs";
 const destination = multer.diskStorage({
     destination: (req, file, cb) => {
         const album = req.body.relativePaths;
-        console.log(album)
+        console.log(req.body)
       
        
         if(album){
