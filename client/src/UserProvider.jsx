@@ -6,13 +6,15 @@ const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState("Loading");
+    const [config, setConfig] = useState(null);
     
 
     useEffect(() => {
         axios
             .get("/api/getUserData")
             .then((res) => {
-                setUser({user: {...res.data.user}, config: {...res.data.config}});
+                setUser(res.data.user);
+                setConfig(res.data.config);
             })
             .catch((err) => {
                 console.log(err);
@@ -29,7 +31,7 @@ export const UserProvider = ({ children }) => {
 
 
     return (
-        <UserContext.Provider value={{ user, setUser }}>
+        <UserContext.Provider value={{ user, setUser, config, setConfig }}>
             {children}
         </UserContext.Provider>
     );

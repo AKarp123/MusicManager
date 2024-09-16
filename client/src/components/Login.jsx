@@ -16,7 +16,7 @@ import ErrorContext from "../ErrorContext";
 const Login = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const { user, setUser } = useContext(UserContext);
+    const { user, setUser, setConfig } = useContext(UserContext);
     const setError = useContext(ErrorContext);
     
     const history = useHistory();
@@ -47,6 +47,7 @@ const Login = () => {
                     return;
                 }
                 setUser(res.data.user);
+                setConfig(res.data.config);
                 setError("You have been successfully logged in", "success");
                 history.replace("/")
             })

@@ -4,11 +4,17 @@ import UserContext from "../UserProvider";
 import { useHistory } from "react-router-dom";
 
 const AuthRoute = ({ component: Component, ...rest }) => {
-    const { user } = useContext(UserContext);
+    const userData = useContext(UserContext);
+
+    const { user } = userData;
+
+
+  
+
 
 
     
-
+    
     return (
         <Route
             {...rest}
