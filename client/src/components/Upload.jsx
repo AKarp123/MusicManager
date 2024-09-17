@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { FilePond, FileStatus, registerPlugin } from "react-filepond";
 import "filepond/dist/filepond.min.css";
-import { Button, Paper } from "@mui/material";
+import { Button, Paper, Stack, Box } from "@mui/material";
 import axios from "axios";
 
 // Register the plugins
 
-const Upload = ({ options, setOptions }) => {
+const Upload = ({ setView }) => {
     const [files, setFiles] = useState([]);
 
     const handleUpdateFiles = (fileItems) => {
@@ -93,8 +93,9 @@ const Upload = ({ options, setOptions }) => {
                 }),
             })
             .then((res) => {
-                load(res.data.file);
+                
                 if (res.data.success) {
+                    load(res.data.message);
                     if (options.folders.indexOf(relativePath) === -1) {
                         setOptions({
                             ...options,
@@ -109,24 +110,51 @@ const Upload = ({ options, setOptions }) => {
     };
 
     return (
-        <FilePond
-            files={files.map((file) => file.file)}
-            onupdatefiles={handleUpdateFiles}
-            allowMultiple={true}
-            chunkUploads={false}
-            instantUpload={true}
-            server={{
-                process: handleFileUpload,
-                load: null,
-                fetch: null,
-                revert: null,
-            }}
-            name="files"
-            lableIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
-            allowDirectoriesOnly={true}
-            maxParallelUploads={10}
-            credits={false}
-        />
+        <>
+            <Paper
+                sx={{
+                    padding: "1rem",
+                    marginBottom: "1rem",
+                }}
+                elevation={16}
+            >
+                <FilePond
+                    files={files.map((file) => file.file)}
+                    onupdatefiles={handleUpdateFiles}
+                    allowMultiple={true}
+                    chunkUploads={false}
+                    instantUpload={true}
+                    server={{
+                        process: handleFileUpload,
+                        load: null,
+                        fetch: null,
+                        revert: null,
+                    }}
+                    name="files"
+                    lableIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
+                    allowDirectoriesOnly={true}
+                    maxParallelUploads={3}
+                    credits={false}
+                />
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                    }}
+                >
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => setView(1)}
+                        sx={{
+                            width: "10%",
+                        }}
+                    >
+                        Next
+                    </Button>
+                </Box>
+            </Paper>
+        </>
     );
 };
 

@@ -5,10 +5,11 @@ import Onboard from "./Onboard";
 import UserContext from "../UserProvider";
 import Upload from "./Upload";
 import { useContext, useState } from "react";
+import PreProcess from "./PreProcess";
 
 const Home = () => {
     const { user, config } = useContext(UserContext);
-    const [view, setView] = useState(0); // 0 = upload 1 = file explorer
+    const [view, setView] = useState(0); // 0 = upload 1 = pre process 2 = file explorer
     const [selectedFolders, setSelectedFolders] = useState([]); 
     const [options, setOptions] = useState({
         replayGain: true,
@@ -36,7 +37,20 @@ const Home = () => {
             </Typography>
             <Divider sx={{ margin: "10px 0" }} />
             <Container>
-                {view === 0 ? <Upload options={options} setOptions={setOptions}/> : <FileExplorer />}
+                {
+                    view === 0 ? (
+                        <Upload setView={setView}/>
+                    ) : view === 1 ? (
+                        <PreProcess
+                            selectedFolders={selectedFolders}
+                            setSelectedFolders={setSelectedFolders}
+                            options={options}
+                            setOptions={setOptions}
+                        />
+                    ) : (
+                        <FileExplorer />
+                    )
+                }
             </Container>
         </PageBackdrop>
     );
