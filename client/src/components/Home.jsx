@@ -8,9 +8,14 @@ import { useContext, useState } from "react";
 
 const Home = () => {
     const { user, config } = useContext(UserContext);
-    const [sessionId, setSessionId] = useState("");
     const [view, setView] = useState(0); // 0 = upload 1 = file explorer
-
+    const [selectedFolders, setSelectedFolders] = useState([]); 
+    const [options, setOptions] = useState({
+        replayGain: true,
+        converToMp3: false,
+        convertHiResFlac: false,
+        folders: [],
+    });
 
 
     if (config.mediaFilePath === "") {
@@ -31,7 +36,7 @@ const Home = () => {
             </Typography>
             <Divider sx={{ margin: "10px 0" }} />
             <Container>
-                {view === 0 ? <Upload /> : <FileExplorer />}
+                {view === 0 ? <Upload options={options} setOptions={setOptions}/> : <FileExplorer />}
             </Container>
         </PageBackdrop>
     );
