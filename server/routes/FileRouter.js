@@ -5,8 +5,10 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { upload } from "../files.js";
-
+import Ffmpeg from "fluent-ffmpeg";
+import { exec } from "child_process";
 const fileRouter = Router();
+const status = {};
 
 fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
     const config = await ConfigModel.findOne({});
@@ -71,12 +73,10 @@ fileRouter.post(
     requireLogin,
     upload.array("files", 100),
     async (req, res) => {
-
-        console.log(req.files)
+        console.log(req.files);
 
         //check if temp/sessionid exists otherwise make it
         try {
-            
             // console.log("Uploaded directory name:", directoryName);
 
             const filePaths = req.files.map(
@@ -89,6 +89,128 @@ fileRouter.post(
         // res.json({ success: true, message: "Folder uploaded" });
     }
 );
+
+fileRouter.post("/process", requireLogin, async (req, res) => {
+    const { options } = req.body;
+
+    if (!options) {
+        res.json({ success: false, message: "No options provided" });
+        return;
+    }
+
+    if (options.convertHiResFlac) {
+        status[req.sessionID] = {
+            message: "Converting Hi-Res to 16/44",
+        };
+        for (let folder of options.folders) {
+            fs.readdir(folder, { withFileTypes: true }, (err, files) => {
+                if (err) {
+                    res.json({
+                        success: false,
+                        message: "Failed to read directory",
+                        error: err,
+                    });
+                    return;
+                }
+                const flacFiles = files.filter(
+                    (file) => file.isFile() && file.name.endsWith(".flac")
+                );
+
+                for (let file of flacFiles) {
+                    const inputPath = path.join(folder, file.name);
+                    const outputPath = path.join(
+                        folder,
+                        file.name.replace(".flac", "-16.flac")
+                    );
+                    new Ffmpeg({ source: inputPath })
+                        .audioFrequency(44100)
+
+                        .save(outputPath)
+                        .on("end", () => {
+                            status[req.sessionID] = {
+                                message: "File converted",
+                            };
+                        });
+                }
+            });
+        }
+    }
+
+    if (options.convertToMp3) {
+        status[req.sessionID] = {
+            message: "Converting to MP3",
+        };
+        console.log("a");
+        for (let folder of options.folders) {
+            fs.readdir(folder, { withFileTypes: true }, async (err, files) => {
+                if (err) {
+                    res.json({
+                        success: false,
+                        message: "Failed to read directory",
+                        error: err,
+                    });
+                    return;
+                }
+                const flacFiles = files.filter(
+                    (file) => file.isFile() && file.name.endsWith(".flac")
+                );
+
+                for (let file of flacFiles) {
+                    const inputPath = path.join(folder, file.name);
+                    const outputPath = path.join(
+                        folder,
+                        file.name.replace(".flac", ".mp3")
+                    );
+
+                    try {
+                        await new Promise((resolve, reject) => {
+                            new Ffmpeg({ source: inputPath })
+                                .audioCodec("libmp3lame")
+                                .audioBitrate(320)
+                                .save(outputPath)
+                                .on("end", () => {
+                                    resolve();
+                                })
+                                .on("error", (err) => {
+                                    console.log(err);
+                                    reject();
+                                });
+                        });
+                    } catch (err) {
+                        console.log(err);
+                    }
+                }
+            });
+        }
+    }
+    if (options.replayGain) {
+        status[req.sessionID] = {
+            message: "Applying ReplayGain",
+        };
+        exec(
+            `cd ../temp/${req.sessionID} && rsgain -easy MAX`,
+            (err, stdout, stderr) => {
+                if (err) {
+                    console.log(err);
+                }
+                console.log(stdout);
+                console.log(stderr);
+            }
+        );
+    }
+
+   
+});
+
+fileRouter.post("/status", requireLogin, async (req, res) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    setInterval(() => {
+        res.write(`data: ${JSON.stringify(status[req.sessionID])}\n\n`);
+    }, 1000);
+});
 
 // fileRouter.post("/upload", requireLogin, upload.array("files"), (req, res) => {
 //     try {

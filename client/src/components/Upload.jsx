@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { FilePond, FileStatus, registerPlugin } from "react-filepond";
 import "filepond/dist/filepond.min.css";
 import { Button, Paper, Stack, Box } from "@mui/material";
 import axios from "axios";
+import ErrorContext from "../ErrorContext";
 
 // Register the plugins
 
-const Upload = ({ setView }) => {
+const Upload = ({ setView, options, setOptions }) => {
     const [files, setFiles] = useState([]);
+    const setError = useContext(ErrorContext);
+    
 
     const handleUpdateFiles = (fileItems) => {
         const files = fileItems.map((fileItem) => {
@@ -133,7 +136,7 @@ const Upload = ({ setView }) => {
                     name="files"
                     lableIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
                     allowDirectoriesOnly={true}
-                    maxParallelUploads={3}
+                    maxParallelUploads={12}
                     credits={false}
                 />
                 <Box
@@ -145,7 +148,14 @@ const Upload = ({ setView }) => {
                     <Button
                         variant="contained"
                         color="primary"
-                        onClick={() => setView(1)}
+                        onClick={() => {
+
+                            if(files.length === 0) {
+                                setError("No Files uploaded!")
+                                return;
+                            }
+                            setView(1);
+                        }}
                         sx={{
                             width: "10%",
                         }}

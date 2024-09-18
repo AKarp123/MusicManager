@@ -1,10 +1,16 @@
 import { List, ListItem, ListItemText, Checkbox, Button, Box, Typography, Divider } from '@mui/material';
+import { useState } from 'react';
+import axios from 'axios';
+import Status from './Status';
 
-const PreProcess = ({selectedFolders, setSelectedFolders, options, setOptions}) => {
-
+const PreProcess = ({ options, setOptions}) => {
+    const [selectedFolders, setSelectedFolders] = useState([]); 
+    const [localOptions, setLocalOptions] = useState(options);
 
     const handleCheck = (e) => {
-        setOptions({...options, [e.target.name]: e.target.checked});
+        // console.log(localOptions)
+        setLocalOptions({...localOptions, [e.target.name]: e.target.checked});
+        console.log(localOptions)
     }
 
     const handleFolderSelect = (folder) => {
@@ -15,8 +21,14 @@ const PreProcess = ({selectedFolders, setSelectedFolders, options, setOptions}) 
         }
     }
 
-    const handleFolderChange = (e) => {
-        setSelectedFolders(e.target.value.split(","));
+    
+
+    const process = () => {
+        axios.post("/api/process", {options: localOptions})
+            .then(res => {
+                console.log(res.data);
+            })
+
     }
 
     return (
@@ -36,21 +48,23 @@ const PreProcess = ({selectedFolders, setSelectedFolders, options, setOptions}) 
             <List>
                 <ListItem>
                     <ListItemText primary="Replay Gain" />
-                    <Checkbox name="replayGain" checked={options.replayGain} onChange={handleCheck} />
+                    <Checkbox name="replayGain" checked={localOptions.replayGain} onChange={handleCheck} disabled/>
                 </ListItem>
                 <ListItem>
                     <ListItemText primary="Convert to MP3" />
-                    <Checkbox name="convertToMp3" checked={options.convertToMp3} onChange={handleCheck} />
+                    <Checkbox name="convertToMp3" checked={localOptions.convertToMp3} onChange={handleCheck} />
                 </ListItem>
                 <ListItem>
                     <ListItemText primary="Convert Hi Res FLAC" />
-                    <Checkbox name="convertHiResFlac" checked={options.convertHiResFlac} onChange={handleCheck} />
+                    <Checkbox name="convertHiResFlac" checked={localOptions.convertHiResFlac} onChange={handleCheck} />
                 </ListItem>
                 
                 <ListItem>
-                    <Button variant="contained" color="primary">Pre Process</Button>
+                    <Button variant="contained" color="primary" onClick={process}>Pre Process</Button>
                 </ListItem>
             </List>
+
+            <Status />
         </Box>
     );
 

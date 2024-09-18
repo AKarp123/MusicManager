@@ -1,5 +1,5 @@
 import PageBackdrop from "./PageBackdrop";
-import { Container, Divider, Typography } from "@mui/material";
+import { Container, Divider, selectClasses, Typography } from "@mui/material";
 import FileExplorer from "./FileViewer/FileExplorer";
 import Onboard from "./Onboard";
 import UserContext from "../UserProvider";
@@ -10,12 +10,12 @@ import PreProcess from "./PreProcess";
 const Home = () => {
     const { user, config } = useContext(UserContext);
     const [view, setView] = useState(0); // 0 = upload 1 = pre process 2 = file explorer
-    const [selectedFolders, setSelectedFolders] = useState([]); 
     const [options, setOptions] = useState({
         replayGain: true,
-        converToMp3: false,
+        convertToMp3: false,
         convertHiResFlac: false,
         folders: [],
+   
     });
 
 
@@ -39,11 +39,9 @@ const Home = () => {
             <Container>
                 {
                     view === 0 ? (
-                        <Upload setView={setView}/>
+                    <Upload setView={setView} options={options} setOptions={setOptions}/>
                     ) : view === 1 ? (
                         <PreProcess
-                            selectedFolders={selectedFolders}
-                            setSelectedFolders={setSelectedFolders}
                             options={options}
                             setOptions={setOptions}
                         />
