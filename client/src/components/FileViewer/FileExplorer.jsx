@@ -15,7 +15,8 @@ import FolderIcon from "@mui/icons-material/Folder";
 import ErrorContext from "../../ErrorContext";
 import NewDirectoryPopup from "./NewDirectoryPopup";
 
-const FileExplorer = ({ setFilePath }) => {
+
+const FileExplorer = ({ setFilePath, setView }) => {
     const [state, dispatch] = useReducer(reducer, {
         directoryList: [],
         currentDirectory: "",
@@ -77,11 +78,32 @@ const FileExplorer = ({ setFilePath }) => {
                         type: "SET_DIRECTORY_LIST",
                         payload: [directoryName, ...state.directoryList],
                     });
+
                 } else {
                     setError("Failed to create directory", "error");
                 }
             });
     };
+
+    const moveFolders = () => {
+        axios
+            .post("/api/moveToDirectory", {
+                directoryPath: state.currentDirectory
+            })
+            .then((res) => {
+                if (res.data.success) {
+                    setError("Files moved successfully, scan media server to see changes!", "success");
+                    setView(0);
+                }
+                else {
+                    setError("Failed to move files", "error");
+                }
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+
+    }
 
     const handleClose = () => {
         dispatch({ type: "TOGGLE_NEW_FOLDER_POPUP" });
@@ -138,6 +160,7 @@ const FileExplorer = ({ setFilePath }) => {
                         sx={{
                             color: "lightgreen"
                         }}
+                        onClick={moveFolders}
                     >
                         Select Folder
                     </Button>

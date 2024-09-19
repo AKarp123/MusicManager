@@ -19,6 +19,12 @@ export const reducer = (state, action) => {
                 ...state,
                 directoryPopup: !state.directoryPopup,
             };
+        case "MOVE_NEW_DIRECTORY":
+            return {
+                ...state,
+                directoryList: [...state.directoryList, action.payload],
+                currentDirectory: currentDirectory + "/" + action.payload,
+            }
         default:
             return state;
         

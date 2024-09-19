@@ -137,6 +137,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                     (file) => file.isFile() && file.name.endsWith(".flac")
                 );
                 let i = 0;
+
                 for (let file of flacFiles) {
                     const inputPath = path.join(
                         `./temp/${req.sessionID}/${folder}`,
@@ -167,7 +168,6 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                         );
                     });
                     if (probe.streams[0].sample_fmt === "s16") {
-                        console.log("file is already 16bit");
                         i++;
                         continue;
                     }
@@ -177,8 +177,14 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                             .outputOptions("-sample_fmt", "s16")
                             .save(outputPath)
                             .on("end", () => {
-                                fs.rmSync(inputPath);
-                                resolve();
+                                fs.rm(inputPath)
+                                    .then(() => {
+                                        resolve();
+                                    })
+                                    .catch((err) => {
+                                        console.log(err);
+                                        reject();
+                                    });
                             })
                             .on("error", (err) => {
                                 console.log(err);
@@ -205,6 +211,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                 const flacFiles = files.filter(
                     (file) => file.isFile() && file.name.endsWith(".flac")
                 );
+
                 let i = 0;
                 for (let file of flacFiles) {
                     status[req.sessionID] = {
@@ -228,9 +235,15 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                             .audioBitrate(320)
                             .save(outputPath)
                             .on("end", () => {
-                                fs.rmSync(inputPath);
-
-                                resolve();
+                                console.log(file);
+                                fs.rm(inputPath)
+                                    .then(() => {
+                                        resolve();
+                                    })
+                                    .catch((err) => {
+                                        console.log(err);
+                                        reject();
+                                    });
                             })
                             .on("error", (err) => {
                                 console.log(err);
@@ -238,7 +251,6 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                             });
                     });
 
-                    console.log(err);
 
                     i++;
                 }
@@ -268,6 +280,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
             );
         }
     } catch (err) {
+        console.log(err);
         res.json({
             success: false,
             message: "Failed to process files",
@@ -312,6 +325,22 @@ fileRouter.post("/moveToDirectory", requireLogin, async (req, res) => {
         config.mediaFilePath,
         directoryPath
     );
+
+    fs.cp(`./temp/${req.sessionID}`, outputDirectory, { recursive: true })
+        .then(() => {
+            fs.rm(`./temp/${
+                req.sessionID
+            }`, { recursive: true })
+                .then(() => {
+                    res.json({ success: true, message: "Files moved successfully" });
+                })
+                .catch((err) => {
+                    res.json({ success: false, message: "Failed to move files", err });
+                });
+        })
+        .catch((err) => {
+            res.json({ success: false, message: "Failed to move files", err });
+        });
 });
 
 // fileRouter.post("/upload", requireLogin, upload.array("files"), (req, res) => {
