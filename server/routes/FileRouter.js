@@ -103,7 +103,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
             message: "Converting Hi-Res to 16/44",
         };
         for (let folder of options.folders) {
-            fs.readdir(folder, { withFileTypes: true }, (err, files) => {
+            fs.readdir(`./temp/${req.sessionID}/${folder}`, { withFileTypes: true }, (err, files) => {
                 if (err) {
                     res.json({
                         success: false,
@@ -142,7 +142,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
         };
         console.log("a");
         for (let folder of options.folders) {
-            fs.readdir(folder, { withFileTypes: true }, async (err, files) => {
+            fs.readdir(`./temp/${req.sessionID}/${folder}`, { withFileTypes: true }, async (err, files) => {
                 if (err) {
                     res.json({
                         success: false,
@@ -155,13 +155,14 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                     (file) => file.isFile() && file.name.endsWith(".flac")
                 );
 
+                
+
                 for (let file of flacFiles) {
-                    const inputPath = path.join(folder, file.name);
+                    const inputPath = path.join(`./temp/${req.sessionID}/${folder}`, file.name);
                     const outputPath = path.join(
-                        folder,
+                        `./temp/${req.sessionID}/${folder}`,
                         file.name.replace(".flac", ".mp3")
                     );
-
                     try {
                         await new Promise((resolve, reject) => {
                             new Ffmpeg({ source: inputPath })
@@ -169,6 +170,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                 .audioBitrate(320)
                                 .save(outputPath)
                                 .on("end", () => {
+                                    // fs.rmSync(inputPath);
                                     resolve();
                                 })
                                 .on("error", (err) => {
@@ -188,16 +190,19 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
             message: "Applying ReplayGain",
         };
         exec(
-            `cd ../temp/${req.sessionID} && rsgain -easy MAX`,
+            `cd ./temp/${req.sessionID} && rsgain easy -m MAX ./`,
             (err, stdout, stderr) => {
                 if (err) {
                     console.log(err);
                 }
                 console.log(stdout);
                 console.log(stderr);
+                res.json({ success: true, message: "Files Processed successfully!" });
             }
         );
     }
+
+    
 
    
 });
