@@ -9,7 +9,7 @@ const PageBackdrop = ({ children }) => {
                 justifyContent: "center",
                 display: "flex",
                 flexDirection: "column",
-                height: "100vh"
+               
             
             }}
         >
@@ -20,7 +20,7 @@ const PageBackdrop = ({ children }) => {
                     height: "100%",
                     borderRadius: "5px",
                     border: "1.5px solid #495057",
-                
+                    minHeight: "100vh"                
 
                 }}
             >

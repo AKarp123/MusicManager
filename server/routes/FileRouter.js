@@ -73,8 +73,6 @@ fileRouter.post(
     requireLogin,
     upload.array("files", 100),
     async (req, res) => {
-        console.log(req.files);
-
         //check if temp/sessionid exists otherwise make it
         try {
             // console.log("Uploaded directory name:", directoryName);
@@ -100,121 +98,151 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
 
     if (options.convertHiResFlac) {
         status[req.sessionID] = {
-            message: "Converting Hi-Res to 16/44",
+            message: "Converting Hi-Res to 16/44...",
         };
         for (let folder of options.folders) {
-            fs.readdir(`./temp/${req.sessionID}/${folder}`, { withFileTypes: true }, (err, files) => {
-                if (err) {
-                    res.json({
-                        success: false,
-                        message: "Failed to read directory",
-                        error: err,
-                    });
-                    return;
-                }
-                const flacFiles = files.filter(
-                    (file) => file.isFile() && file.name.endsWith(".flac")
+            const files = fs.readdir(`./temp/${req.sessionID}/${folder}`, {
+                withFileTypes: true,
+            });
+            const flacFiles = files.filter(
+                (file) => file.isFile() && file.name.endsWith(".flac")
+            );
+            let i = 1;
+            for (let file of flacFiles) {
+                const inputPath = path.join(
+                    `./temp/${req.sessionID}/${folder}`,
+                    file.name
                 );
-
-                for (let file of flacFiles) {
-                    const inputPath = path.join(folder, file.name);
-                    const outputPath = path.join(
-                        folder,
-                        file.name.replace(".flac", "-16.flac")
-                    );
+                const outputPath = path.join(
+                    `./temp/${req.sessionID}/${folder}`,
+                    file.name.replace(".flac", "-16.flac")
+                );
+                status[req.sessionID] = {
+                    message: `Converting Hi-Res to 16/44... ${
+                        ((i / flacFiles.length) * 100).toFixed(2)
+                    }% complete`,
+                };
+                await new Promise((resolve, reject) => {
                     new Ffmpeg({ source: inputPath })
                         .audioFrequency(44100)
-
+                        .outputOptions("-sample_fmt", "s16")
                         .save(outputPath)
                         .on("end", () => {
-                            status[req.sessionID] = {
-                                message: "File converted",
-                            };
+                            fs.rmSync(inputPath);
+                            resolve();
+                        })
+                        .on("error", (err) => {
+                            console.log(err);
+                            reject();
                         });
-                }
-            });
+                });
+            }
         }
     }
 
     if (options.convertToMp3) {
-        status[req.sessionID] = {
-            message: "Converting to MP3",
-        };
-        console.log("a");
         for (let folder of options.folders) {
-            fs.readdir(`./temp/${req.sessionID}/${folder}`, { withFileTypes: true }, async (err, files) => {
-                if (err) {
-                    res.json({
-                        success: false,
-                        message: "Failed to read directory",
-                        error: err,
-                    });
-                    return;
+            status[req.sessionID] = {
+                message: `Converting ${folder} to MP3`,
+            };
+
+            const files = fs.readdirSync(
+                `./temp/${req.sessionID}/${folder}`,
+                {
+                    withFileTypes: true,
                 }
-                const flacFiles = files.filter(
-                    (file) => file.isFile() && file.name.endsWith(".flac")
+            );
+            const flacFiles = files.filter(
+                (file) => file.isFile() && file.name.endsWith(".flac")
+            );
+            let i = 1;
+            for (let file of flacFiles) {
+                status[req.sessionID] = {
+                    message: `Converting ${folder} to MP3... ${
+                        ((i / flacFiles.length) * 100).toFixed(2)
+                    }% complete`,
+                };
+                const inputPath = path.join(
+                    `./temp/${req.sessionID}/${folder}`,
+                    file.name
                 );
-
-                
-
-                for (let file of flacFiles) {
-                    const inputPath = path.join(`./temp/${req.sessionID}/${folder}`, file.name);
-                    const outputPath = path.join(
-                        `./temp/${req.sessionID}/${folder}`,
-                        file.name.replace(".flac", ".mp3")
-                    );
-                    try {
-                        await new Promise((resolve, reject) => {
-                            new Ffmpeg({ source: inputPath })
-                                .audioCodec("libmp3lame")
-                                .audioBitrate(320)
-                                .save(outputPath)
-                                .on("end", () => {
-                                    // fs.rmSync(inputPath);
-                                    resolve();
-                                })
-                                .on("error", (err) => {
-                                    console.log(err);
-                                    reject();
-                                });
-                        });
-                    } catch (err) {
-                        console.log(err);
-                    }
+                const outputPath = path.join(
+                    `./temp/${req.sessionID}/${folder}`,
+                    file.name.replace(".flac", ".mp3")
+                );
+                try {
+                    await new Promise((resolve, reject) => {
+                        new Ffmpeg({ source: inputPath })
+                            .audioCodec("libmp3lame")
+                            .audioBitrate(320)
+                            .save(outputPath)
+                            .on("end", () => {
+                                fs.rmSync(inputPath);
+                                resolve();
+                            })
+                            .on("error", (err) => {
+                                console.log(err);
+                                reject();
+                            });
+                    });
+                } catch (err) {
+                    console.log(err);
                 }
-            });
+                i++;
+            }
         }
     }
+
     if (options.replayGain) {
         status[req.sessionID] = {
             message: "Applying ReplayGain",
         };
         exec(
-            `cd ./temp/${req.sessionID} && rsgain easy -m MAX ./`,
+            `rsgain easy -m MAX ./temp/${req.sessionID}`,
             (err, stdout, stderr) => {
                 if (err) {
                     console.log(err);
                 }
                 console.log(stdout);
                 console.log(stderr);
-                res.json({ success: true, message: "Files Processed successfully!" });
+                res.json({
+                    success: true,
+                    message: "Files Processed successfully!",
+                });
             }
         );
     }
 
+    stauts[req.sessionID] = {
+        message: "Files Processed successfully!",
+    };
     
-
-   
 });
 
-fileRouter.post("/status", requireLogin, async (req, res) => {
+fileRouter.get("/status", requireLogin, async (req, res) => {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
-    setInterval(() => {
-        res.write(`data: ${JSON.stringify(status[req.sessionID])}\n\n`);
-    }, 1000);
+    const statusMessage = setInterval(() => {
+        status[req.sessionID];
+
+        if (status[req.sessionID]) {
+            res.write(`data: ${JSON.stringify(status[req.sessionID])}\n\n`);
+        }
+
+        if (
+            status[req.sessionID] &&
+            status[req.sessionID].message === "Files Processed successfully!"
+        ) {
+            clearInterval(statusMessage);
+            res.end();
+        }
+    }, 500);
+
+    req.on("close", () => {
+        clearInterval(statusMessage);
+    });
 });
 
 // fileRouter.post("/upload", requireLogin, upload.array("files"), (req, res) => {

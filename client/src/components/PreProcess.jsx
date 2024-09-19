@@ -1,11 +1,35 @@
 import { List, ListItem, ListItemText, Checkbox, Button, Box, Typography, Divider } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Status from './Status';
 
 const PreProcess = ({ options, setOptions}) => {
     const [selectedFolders, setSelectedFolders] = useState([]); 
     const [localOptions, setLocalOptions] = useState(options);
+    const [isProcessing, setIsProcessing] = useState(false);    
+    const [statusMessage, setStatusMessage] = useState("");
+
+
+    useEffect(() => {
+        if(!isProcessing) {
+            return;
+        }
+        const eventSource = new EventSource("/api/status");
+        eventSource.onmessage = (e) => {
+            
+            const data = JSON.parse(e.data);
+            setStatusMessage(data.message);
+
+            if(message === 'Files Processed successfully!') {
+                setIsProcessing(false);
+                eventSource.close();
+            }
+
+        }
+        return () => {
+            eventSource.close();
+        }
+    }, [isProcessing]);
 
     const handleCheck = (e) => {
         // console.log(localOptions)
@@ -24,6 +48,7 @@ const PreProcess = ({ options, setOptions}) => {
     
 
     const process = () => {
+        setIsProcessing(true);
         axios.post("/api/process", {options: localOptions})
             .then(res => {
                 console.log(res.data);
@@ -64,7 +89,7 @@ const PreProcess = ({ options, setOptions}) => {
                 </ListItem>
             </List>
 
-            <Status />
+            <Status statusMessage={statusMessage}/>
         </Box>
     );
 
