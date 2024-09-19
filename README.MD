@@ -1,13 +1,14 @@
 # MusicManager
 
-MusicManager is a simple and efficient tool for managing your music library. It allows you to organize, search, and play your music files with ease.
+MusicManager is a simple and efficient tool for managing your music library. Allows for easy uploading, format conversion and file movement of your music files to a media server.
 
 ## Features
 
-- Organize your music library by artist, album, and genre
-- Search for songs by title, artist, or album
-- Create and manage playlists
-- Play music directly from the application
+- Simple and easy directory upload
+- Support for Hi Res Flac (24bit+ ) to 16bit/44.1kHz conversion
+- Support for Flac to MP3 conversion
+- Automatic ReplayGain calculation 
+- Simple folder navigation
 
 ## Prerequisites
 - Node.js
@@ -15,18 +16,6 @@ MusicManager is a simple and efficient tool for managing your music library. It 
 - [FFmpeg](https://ffmpeg.org/download.html)
 - [Rsgain](https://github.com/complexlogic/rsgain)
 
-## Installation
 
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/yourusername/MusicManager.git
-    ```
-2. Navigate to the project directory:
-    ```sh
-    cd MusicManager
-    ```
-3. Install the required dependencies:
-    ```sh
-    npm install
-    ```
+Recommended for people using Navidrome/ subsonic media servers
 
