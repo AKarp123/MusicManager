@@ -9,7 +9,7 @@ import PreProcess from "./PreProcess";
 
 const Home = () => {
     const { user, config } = useContext(UserContext);
-    const [view, setView] = useState(0); // 0 = upload 1 = pre process 2 = file explorer
+    const [view, setView] = useState(2); // 0 = upload 1 = pre process 2 = file explorer
     const [options, setOptions] = useState({
         replayGain: true,
         convertToMp3: false,
@@ -44,6 +44,7 @@ const Home = () => {
                         <PreProcess
                             options={options}
                             setOptions={setOptions}
+                            setView={setView}
                         />
                     ) : (
                         <FileExplorer />

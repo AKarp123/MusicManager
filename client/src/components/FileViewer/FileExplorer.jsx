@@ -13,11 +13,13 @@ import {
 } from "@mui/material";
 import FolderIcon from "@mui/icons-material/Folder";
 import ErrorContext from "../../ErrorContext";
+import NewDirectoryPopup from "./NewDirectoryPopup";
 
-const FileExplorer = ({setFilePath}) => {
+const FileExplorer = ({ setFilePath }) => {
     const [state, dispatch] = useReducer(reducer, {
         directoryList: [],
         currentDirectory: "",
+        directoryPopup: false,
     });
 
     const setError = useContext(ErrorContext);
@@ -34,7 +36,6 @@ const FileExplorer = ({setFilePath}) => {
                         payload: res.data.directories,
                     });
                 }
-                
             });
     }, []);
 
@@ -61,6 +62,29 @@ const FileExplorer = ({setFilePath}) => {
                 }
             });
     }, [state.currentDirectory]);
+
+    const createNewDirectory = (directoryName) => {
+        dispatch({ type: "TOGGLE_NEW_FOLDER_POPUP" });
+        axios
+            .post("/api/createDirectory", {
+                directoryName,
+                directoryPath: state.currentDirectory,
+            })
+            .then((res) => {
+                if (res.data.success) {
+                    dispatch({
+                        type: "SET_DIRECTORY_LIST",
+                        payload: [directoryName, ...state.directoryList],
+                    });
+                } else {
+                    setError("Failed to create directory", "error");
+                }
+            });
+    };
+
+    const handleClose = () => {
+        dispatch({ type: "TOGGLE_NEW_FOLDER_POPUP" });
+    };
 
     return (
         <>
@@ -90,9 +114,29 @@ const FileExplorer = ({setFilePath}) => {
                     Back
                 </Button>
                 {setFilePath && (
-                    
+                    <Button onClick={() => setFilePath(state.currentDirectory)}>
+                        Select Folder
+                    </Button>
+                )}
+                <Button
+                    onClick={() =>
+                        dispatch({ type: "TOGGLE_NEW_FOLDER_POPUP" })
+                    }
+                >
+                    New Folder
+                </Button>
+                {state.directoryPopup && (
+                    <NewDirectoryPopup
+                        createNewDirectory={createNewDirectory}
+                        newFolderPopup={state.directoryPopup}
+                        handleClose={handleClose}
+                    />
+                )}
+                {!setFilePath && (
                     <Button
-                        onClick={() => setFilePath(state.currentDirectory)}
+                        sx={{
+                            color: "lightgreen"
+                        }}
                     >
                         Select Folder
                     </Button>

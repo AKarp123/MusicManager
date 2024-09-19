@@ -14,6 +14,11 @@ export const reducer = (state, action) => {
                 ...state,
                 currentDirectory: action.payload,
             };
+        case "TOGGLE_NEW_FOLDER_POPUP":
+            return {
+                ...state,
+                directoryPopup: !state.directoryPopup,
+            };
         default:
             return state;
         

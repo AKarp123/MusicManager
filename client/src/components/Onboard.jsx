@@ -12,7 +12,7 @@ const Onboard = () => {
 
     const setFilePath = (filePath) => {
         axios
-            .post("/api/setFilePath", {
+            .post("/api/setDirectory", {
                 filePath,
             })
             .then((res) => {

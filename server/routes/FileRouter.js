@@ -7,6 +7,7 @@ import os from "os";
 import { upload } from "../files.js";
 import Ffmpeg from "fluent-ffmpeg";
 import { exec } from "child_process";
+import _ from "passport-local-mongoose";
 const fileRouter = Router();
 const status = {};
 
@@ -47,7 +48,7 @@ fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
             res.json({
                 success: false,
                 message: "Failed to read directory",
-                error: err,
+            error: err,
             });
             return;
         }
@@ -60,7 +61,15 @@ fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
     });
 });
 
-fileRouter.post("/setFilePath", requireLogin, async (req, res) => {
+fileRouter.post("/createDirectory", requireLogin, async (req, res) => {
+    const { directoryName, directoryPath } = req.body;
+    
+    const config = await ConfigModel.findOne({});
+    const userDirectory = path.join(os.homedir(), config.mediaFilePath, directoryPath);
+    res.json({ success: true, message: path.join(userDirectory, directoryName)});
+});
+
+fileRouter.post("/setDirectory", requireLogin, async (req, res) => {
     const { filePath } = req.body;
     const config = await ConfigModel.findOne({});
     config.mediaFilePath = filePath;

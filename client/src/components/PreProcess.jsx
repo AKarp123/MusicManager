@@ -4,10 +4,10 @@ import axios from 'axios';
 import Status from './Status';
 import ErrorContext from '../ErrorContext';
 
-const PreProcess = ({ options, setOptions}) => {
+const PreProcess = ({ options, setView}) => {
     const [selectedFolders, setSelectedFolders] = useState([]); 
     const [localOptions, setLocalOptions] = useState(options);
-    const [isProcessing, setIsProcessing] = useState(false);    
+    const [isProcessing, setIsProcessing] = useState(0); // 0 = not processing, 1 = processing, 2 = done processing 
     const [statusMessage, setStatusMessage] = useState("");
     const setError = useContext(ErrorContext);
 
@@ -22,7 +22,7 @@ const PreProcess = ({ options, setOptions}) => {
             const data = JSON.parse(e.data);
             console.log(data)
             if(data.message === 'Files Processed successfully!') {
-                setIsProcessing(false);
+                setIsProcessing(2);
                 eventSource.close();
             }
             setStatusMessage(data.message);
@@ -51,7 +51,7 @@ const PreProcess = ({ options, setOptions}) => {
     
 
     const process = () => {
-        setIsProcessing(true);
+        setIsProcessing(1);
         axios.post("/api/process", {options: localOptions, selectedFolders})
             .then(res => {
                 if(res.data.success) {
@@ -99,8 +99,9 @@ const PreProcess = ({ options, setOptions}) => {
                     <Button variant="contained" color="primary" onClick={process}>Pre Process</Button>
                 </ListItem>
             </List>
-
-            <Status statusMessage={statusMessage}/>
+            {isProcessing === 1 && <Status statusMessage={statusMessage}/>}
+            {isProcessing === 2 && <Button variant="contained" color="primary" onClick={() => setView(2)}>Move Folders</Button>}
+            
         </Box>
     );
 
