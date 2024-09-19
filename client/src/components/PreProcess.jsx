@@ -1,13 +1,15 @@
 import { List, ListItem, ListItemText, Checkbox, Button, Box, Typography, Divider } from '@mui/material';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import Status from './Status';
+import ErrorContext from '../ErrorContext';
 
 const PreProcess = ({ options, setOptions}) => {
     const [selectedFolders, setSelectedFolders] = useState([]); 
     const [localOptions, setLocalOptions] = useState(options);
     const [isProcessing, setIsProcessing] = useState(false);    
     const [statusMessage, setStatusMessage] = useState("");
+    const setError = useContext(ErrorContext);
 
 
     useEffect(() => {
@@ -18,12 +20,13 @@ const PreProcess = ({ options, setOptions}) => {
         eventSource.onmessage = (e) => {
             
             const data = JSON.parse(e.data);
-            setStatusMessage(data.message);
-
-            if(message === 'Files Processed successfully!') {
+            console.log(data)
+            if(data.message === 'Files Processed successfully!') {
                 setIsProcessing(false);
                 eventSource.close();
             }
+            setStatusMessage(data.message);
+
 
         }
         return () => {
@@ -49,9 +52,17 @@ const PreProcess = ({ options, setOptions}) => {
 
     const process = () => {
         setIsProcessing(true);
-        axios.post("/api/process", {options: localOptions})
+        axios.post("/api/process", {options: localOptions, selectedFolders})
             .then(res => {
-                console.log(res.data);
+                if(res.data.success) {
+                    setError("Files Processed successfully!", "success");
+                    
+                    
+                }
+                else {
+                    setError(res.data.message);
+                }
+                
             })
 
     }

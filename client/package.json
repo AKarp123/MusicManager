@@ -18,6 +18,8 @@
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.7.7",
     "filepond": "^4.31.3",
+    "filepond-plugin-file-metadata": "^1.0.8",
+    "filepond-plugin-file-validate-type": "^1.2.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-filepond": "^7.1.2",

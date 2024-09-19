@@ -89,92 +89,67 @@ fileRouter.post(
 );
 
 fileRouter.post("/process", requireLogin, async (req, res) => {
-    const { options } = req.body;
+    const { options, selectedFolders } = req.body;
 
     if (!options) {
         res.json({ success: false, message: "No options provided" });
         return;
     }
 
-    if (options.convertHiResFlac) {
-        status[req.sessionID] = {
-            message: "Converting Hi-Res to 16/44...",
-        };
-        for (let folder of options.folders) {
-            const files = fs.readdir(`./temp/${req.sessionID}/${folder}`, {
-                withFileTypes: true,
-            });
-            const flacFiles = files.filter(
-                (file) => file.isFile() && file.name.endsWith(".flac")
-            );
-            let i = 1;
-            for (let file of flacFiles) {
-                const inputPath = path.join(
-                    `./temp/${req.sessionID}/${folder}`,
-                    file.name
-                );
-                const outputPath = path.join(
-                    `./temp/${req.sessionID}/${folder}`,
-                    file.name.replace(".flac", "-16.flac")
-                );
-                status[req.sessionID] = {
-                    message: `Converting Hi-Res to 16/44... ${
-                        ((i / flacFiles.length) * 100).toFixed(2)
-                    }% complete`,
-                };
-                await new Promise((resolve, reject) => {
-                    new Ffmpeg({ source: inputPath })
-                        .audioFrequency(44100)
-                        .outputOptions("-sample_fmt", "s16")
-                        .save(outputPath)
-                        .on("end", () => {
-                            fs.rmSync(inputPath);
-                            resolve();
-                        })
-                        .on("error", (err) => {
-                            console.log(err);
-                            reject();
-                        });
-                });
-            }
-        }
-    }
-
-    if (options.convertToMp3) {
-        for (let folder of options.folders) {
+    try {
+        if (options.convertHiResFlac) {
             status[req.sessionID] = {
-                message: `Converting ${folder} to MP3`,
+                message: "Converting Hi-Res to 16/44...",
             };
+            for (let folder of selectedFolders) {
+                const files = fs.readdirSync(
+                    `./temp/${req.sessionID}/${folder}`,
+                    {
+                        withFileTypes: true,
+                    }
+                );
+                const flacFiles = files.filter(
+                    (file) => file.isFile() && file.name.endsWith(".flac")
+                );
+                let i = 0;
+                for (let file of flacFiles) {
+                    const inputPath = path.join(
+                        `./temp/${req.sessionID}/${folder}`,
+                        file.name
+                    );
+                    const outputPath = path.join(
+                        `./temp/${req.sessionID}/${folder}`,
+                        file.name.replace(".flac", "-16.flac")
+                    );
+                    status[req.sessionID] = {
+                        message: `Converting Hi-Res to 16/44... ${(
+                            (i / flacFiles.length) *
+                            100
+                        ).toFixed(2)}% complete`,
+                    };
 
-            const files = fs.readdirSync(
-                `./temp/${req.sessionID}/${folder}`,
-                {
-                    withFileTypes: true,
-                }
-            );
-            const flacFiles = files.filter(
-                (file) => file.isFile() && file.name.endsWith(".flac")
-            );
-            let i = 1;
-            for (let file of flacFiles) {
-                status[req.sessionID] = {
-                    message: `Converting ${folder} to MP3... ${
-                        ((i / flacFiles.length) * 100).toFixed(2)
-                    }% complete`,
-                };
-                const inputPath = path.join(
-                    `./temp/${req.sessionID}/${folder}`,
-                    file.name
-                );
-                const outputPath = path.join(
-                    `./temp/${req.sessionID}/${folder}`,
-                    file.name.replace(".flac", ".mp3")
-                );
-                try {
+                    //check if file is already 16/44
+                    const probe = await new Promise((resolve, reject) => {
+                        new Ffmpeg({ source: inputPath }).ffprobe(
+                            (err, data) => {
+                                if (err) {
+                                    reject(err);
+                                }
+                                // console.log("file is already 16bit")
+
+                                resolve(data);
+                            }
+                        );
+                    });
+                    if (probe.streams[0].sample_fmt === "s16") {
+                        console.log("file is already 16bit");
+                        i++;
+                        continue;
+                    }
                     await new Promise((resolve, reject) => {
                         new Ffmpeg({ source: inputPath })
-                            .audioCodec("libmp3lame")
-                            .audioBitrate(320)
+                            .audioFrequency(44100)
+                            .outputOptions("-sample_fmt", "s16")
                             .save(outputPath)
                             .on("end", () => {
                                 fs.rmSync(inputPath);
@@ -185,38 +160,98 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                 reject();
                             });
                     });
-                } catch (err) {
-                    console.log(err);
+                    i++;
                 }
-                i++;
             }
         }
-    }
 
-    if (options.replayGain) {
-        status[req.sessionID] = {
-            message: "Applying ReplayGain",
-        };
-        exec(
-            `rsgain easy -m MAX ./temp/${req.sessionID}`,
-            (err, stdout, stderr) => {
-                if (err) {
+        if (options.convertToMp3) {
+
+            for (let folder of selectedFolders) {
+                status[req.sessionID] = {
+                    message: `Converting ${folder} to MP3`,
+                };
+
+                const files = fs.readdirSync(
+                    `./temp/${req.sessionID}/${folder}`,
+                    {
+                        withFileTypes: true,
+                    }
+                );
+                const flacFiles = files.filter(
+                    (file) => file.isFile() && file.name.endsWith(".flac")
+                );
+                let i = 0;
+                for (let file of flacFiles) {
+                    status[req.sessionID] = {
+                        message: `Converting ${folder} to MP3... ${(
+                            (i / flacFiles.length) *
+                            100
+                        ).toFixed(2)}% complete`,
+                    };
+                    const inputPath = path.join(
+                        `./temp/${req.sessionID}/${folder}`,
+                        file.name
+                    );
+                    const outputPath = path.join(
+                        `./temp/${req.sessionID}/${folder}`,
+                        file.name.replace(".flac", ".mp3")
+                    );
+
+                   
+
+                    await new Promise((resolve, reject) => {
+                        new Ffmpeg({ source: inputPath })
+                            .audioCodec("libmp3lame")
+                            .audioBitrate(320)
+                            .save(outputPath)
+                            .on("end", () => {
+                                fs.rmSync(inputPath);
+
+                                resolve();
+                            })
+                            .on("error", (err) => {
+                                console.log(err);
+                                reject();
+                            });
+                    });
+
                     console.log(err);
-                }
-                console.log(stdout);
-                console.log(stderr);
-                res.json({
-                    success: true,
-                    message: "Files Processed successfully!",
-                });
-            }
-        );
-    }
 
-    stauts[req.sessionID] = {
-        message: "Files Processed successfully!",
-    };
-    
+                    i++;
+                }
+            }
+        }
+
+        if (options.replayGain) {
+            status[req.sessionID] = {
+                message: "Applying ReplayGain",
+            };
+            exec(
+                `rsgain easy -m MAX ./temp/${req.sessionID}`,
+                (err, stdout, stderr) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.log(stdout);
+                    console.log(stderr);
+                    status[req.sessionID] = {
+                        message: "Files Processed successfully!",
+                    };
+                    res.json({
+                        success: true,
+                        message: "Files Processed successfully!",
+                    });
+                }
+            );
+        }
+    } catch (err) {
+        res.json({
+            success: false,
+            message: "Failed to process files",
+            error: err,
+        });
+    }
 });
 
 fileRouter.get("/status", requireLogin, async (req, res) => {

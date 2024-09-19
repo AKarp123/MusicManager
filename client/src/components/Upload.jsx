@@ -4,8 +4,13 @@ import "filepond/dist/filepond.min.css";
 import { Button, Paper, Stack, Box } from "@mui/material";
 import axios from "axios";
 import ErrorContext from "../ErrorContext";
+import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
+import FilePondPluginFileMetadata from "filepond-plugin-file-metadata";
+
 
 // Register the plugins
+registerPlugin(FilePondPluginFileValidateType, FilePondPluginFileMetadata);
+
 
 const Upload = ({ setView, options, setOptions }) => {
     const [files, setFiles] = useState([]);
@@ -13,13 +18,13 @@ const Upload = ({ setView, options, setOptions }) => {
     
 
     const handleUpdateFiles = (fileItems) => {
-        const files = fileItems.map((fileItem) => {
+        const files = fileItems.map((fileItem, i) => {
             if (fileItem.file) {
-                console.log(fileItem.file.webkitRelativePath);
+                console.log(fileItem.file.webkitRelativePath );
                 return {
                     file: fileItem.file,
                     relativePath:
-                        fileItem.file.webkitRelativePath.split("/")[0],
+                        fileItem.file.webkitRelativePath.split("/")[0]
                 };
             }
         });
@@ -134,10 +139,12 @@ const Upload = ({ setView, options, setOptions }) => {
                         revert: null,
                     }}
                     name="files"
-                    lableIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
+                    labelIdle='Click <span class="filepond--label-action">Browse</span> to upload'
                     allowDirectoriesOnly={true}
                     maxParallelUploads={12}
                     credits={false}
+                    allowFileMetadata={true}
+                    
                 />
                 <Box
                     sx={{
