@@ -1,13 +1,12 @@
 import { Router } from "express";
 import requireLogin from "../requireLogin.js";
 import ConfigModel from "../Models/ConfigModel.js";
-import fs from "fs";
+import fs from "node:fs/promises";
 import path from "path";
 import os from "os";
 import { upload } from "../files.js";
 import Ffmpeg from "fluent-ffmpeg";
 import { exec } from "child_process";
-import _ from "passport-local-mongoose";
 const fileRouter = Router();
 const status = {};
 
@@ -22,51 +21,68 @@ fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
             config.mediaFilePath,
             directory ? directory : ""
         ); //media server path + subdirectory
-        fs.readdir(userDirectory, { withFileTypes: true }, (err, files) => {
-            if (err) {
+        fs.readdir(userDirectory, { withFileTypes: true })
+            .then((files) => {
+                const directories = files
+                    .filter((file) => file.isDirectory())
+                    .map((directory) => directory.name);
+
+                res.json({ success: true, directories: directories });
+            })
+            .catch((err) => {
                 res.json({
                     success: false,
                     message: "Failed to read directory",
                     error: err,
                 });
-                return;
-            }
-
-            const directories = files
-                .filter((file) => file.isDirectory())
-                .map((file) => file.name);
-
-            res.json({ success: true, directories: directories });
-        });
+            });
         return;
     }
 
     //initial file config setup
     let userDirectory = path.join(os.homedir(), directory ? directory : "");
-    fs.readdir(userDirectory, { withFileTypes: true }, (err, files) => {
-        if (err) {
+
+    fs.readdir(userDirectory, { withFileTypes: true })
+        .then((files) => {
+            const directories = files
+                .filter((file) => file.isDirectory())
+                .map((directory) => directory.name);
+
+            res.json({ success: true, directories: directories });
+        })
+        .catch((err) => {
             res.json({
                 success: false,
                 message: "Failed to read directory",
-            error: err,
+                error: err,
             });
-            return;
-        }
-
-        const directories = files
-            .filter((file) => file.isDirectory())
-            .map((file) => file.name);
-
-        res.json({ success: true, directories: directories });
-    });
+        });
 });
 
 fileRouter.post("/createDirectory", requireLogin, async (req, res) => {
     const { directoryName, directoryPath } = req.body;
-    
+
     const config = await ConfigModel.findOne({});
-    const userDirectory = path.join(os.homedir(), config.mediaFilePath, directoryPath);
-    res.json({ success: true, message: path.join(userDirectory, directoryName)});
+    const userDirectory = path.join(
+        os.homedir(),
+        config.mediaFilePath,
+        directoryPath
+    );
+
+    fs.mkdir(path.join(userDirectory, directoryName), { recursive: true })
+        .then((folder) => {
+            res.json({
+                success: true,
+                message: path.join(userDirectory, directoryName),
+            });
+        })
+        .catch((err) => {
+            res.json({
+                success: false,
+                message: "Failed to create directory",
+                error: err,
+            });
+        });
 });
 
 fileRouter.post("/setDirectory", requireLogin, async (req, res) => {
@@ -111,7 +127,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                 message: "Converting Hi-Res to 16/44...",
             };
             for (let folder of selectedFolders) {
-                const files = fs.readdirSync(
+                const files = await fs.readdir(
                     `./temp/${req.sessionID}/${folder}`,
                     {
                         withFileTypes: true,
@@ -175,13 +191,12 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
         }
 
         if (options.convertToMp3) {
-
             for (let folder of selectedFolders) {
                 status[req.sessionID] = {
                     message: `Converting ${folder} to MP3`,
                 };
 
-                const files = fs.readdirSync(
+                const files = await fs.readdir(
                     `./temp/${req.sessionID}/${folder}`,
                     {
                         withFileTypes: true,
@@ -206,8 +221,6 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                         `./temp/${req.sessionID}/${folder}`,
                         file.name.replace(".flac", ".mp3")
                     );
-
-                   
 
                     await new Promise((resolve, reject) => {
                         new Ffmpeg({ source: inputPath })
@@ -287,6 +300,18 @@ fileRouter.get("/status", requireLogin, async (req, res) => {
     req.on("close", () => {
         clearInterval(statusMessage);
     });
+});
+
+fileRouter.post("/moveToDirectory", requireLogin, async (req, res) => {
+    const { directoryPath } = req.body;
+
+    const config = await ConfigModel.findOne({});
+
+    const outputDirectory = path.join(
+        os.homedir(),
+        config.mediaFilePath,
+        directoryPath
+    );
 });
 
 // fileRouter.post("/upload", requireLogin, upload.array("files"), (req, res) => {
