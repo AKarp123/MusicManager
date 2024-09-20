@@ -16,6 +16,15 @@ MusicManager is a simple and efficient tool for managing your music library. All
 - [FFmpeg](https://ffmpeg.org/download.html)
 - [Rsgain](https://github.com/complexlogic/rsgain)
 
+## Installation
+-Ensure prereqs installed
+-Clone Repo
+-install node modules for both client and server
+-in server .env add MONGODB_URI connection string, SESSION_SECRET secret and PORT number
+-npm run build
+-node run start
+-complete configuration on <ip>:port
+
 
 Recommended for people using Navidrome/ subsonic media servers
 
