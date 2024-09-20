@@ -4,7 +4,7 @@ import AuthRoute from "./components/AuthRoute";
 import Login from "./components/Login";
 import { UserProvider } from "./UserProvider";
 import Home from "./components/Home";
-import Register from "./components/register";
+import Register from "./components/Register";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { CssBaseline, Alert, Snackbar } from "@mui/material";
 import ErrorContext from "./ErrorContext";

@@ -322,6 +322,7 @@ fileRouter.get("/status", requireLogin, async (req, res) => {
             status[req.sessionID].message === "Files Processed successfully!"
         ) {
             clearInterval(statusMessage);
+            status[req.sessionID] = null;
             res.end();
         }
     }, 500);

@@ -18,7 +18,7 @@ const Home = () => {
    
     });
 
-    console.log(config.mediaFilePath)
+
     if (config.mediaFilePath === "") { // initial music setup
         return (
             <PageBackdrop>
