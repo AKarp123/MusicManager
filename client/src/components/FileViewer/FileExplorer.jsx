@@ -75,8 +75,8 @@ const FileExplorer = ({ setFilePath, setView }) => {
                 if (res.data.success) {
                     setError("Directory created successfully", "success");
                     dispatch({
-                        type: "SET_DIRECTORY_LIST",
-                        payload: [directoryName, ...state.directoryList],
+                        type: "SET_CURRENT_DIRECTORY",
+                        payload: state.currentDirectory + "/" + directoryName,
                     });
 
                 } else {
