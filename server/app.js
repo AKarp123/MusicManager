@@ -13,7 +13,7 @@ import reset from "./reset.js";
 import ConfigModel from "./Models/ConfigModel.js";
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 mongoose.connect(
     process.env.NODE_ENV === "production"
