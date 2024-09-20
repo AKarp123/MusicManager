@@ -22,7 +22,7 @@ MusicManager is a simple and efficient tool for managing your music library. All
 - install node modules for both client and server
 - in server .env add MONGODB_URI connection string, SESSION_SECRET secret and PORT number
 - npm run build
-- node run start
+- npm run start
 - complete configuration on <ip>:port
 
 
