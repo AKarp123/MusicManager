@@ -10,6 +10,7 @@ import UserModel from "./Models/UserModel.js";
 import MongoStore from "connect-mongo";
 import initializeConfig from "./initializeConfig.js";
 import reset from "./reset.js";
+import ConfigModel from "./Models/ConfigModel.js";
 
 const app = express();
 const port = 3000;
@@ -69,6 +70,11 @@ db.once("open", async () => {
     console.log("Connected to MongoDB");
     // await initializeConfig();
     // reset();
+
+    const config = await ConfigModel.findOne({});
+    if (!config) {
+        await initializeConfig();
+    }
 
   
 });
