@@ -25,6 +25,11 @@ MusicManager is a simple and efficient tool for managing your music library. All
 - npm run start
 - complete configuration on <ip>:port
 
+### Todo
+- Completely async processing and file movement (once you upload and choose folder it will auto process and everything, no need to wait till after process to move)
+- Multi user support
+- (Potential) better multithreading support when processing
+
 
 Recommended for people using Navidrome/ subsonic media servers
 
