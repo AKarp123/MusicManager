@@ -86,6 +86,7 @@ const FileExplorer = ({ setFilePath, setView }) => {
     };
 
     const moveFolders = () => {
+        setError("Moving files, please wait...", "info");
         axios
             .post("/api/moveToDirectory", {
                 directoryPath: state.currentDirectory

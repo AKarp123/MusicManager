@@ -8,7 +8,7 @@ import UserContext from "../UserProvider";
 const Onboard = () => {
     const setError = useContext(ErrorContext);
 
-    const { user, setUser } = useContext(UserContext);
+    const { user, setUser, setConfig } = useContext(UserContext);
 
     const setFilePath = (filePath) => {
         axios
@@ -18,10 +18,7 @@ const Onboard = () => {
             .then((res) => {
                 console.log(res);
                 setError("File path set successfully", "success");
-                setUser({
-                    user: { ...user.user },
-                    config: { ...user.config, mediaFilePath: filePath },
-                });
+                setConfig(res.data.config)
 
             })
             .catch((err) => {

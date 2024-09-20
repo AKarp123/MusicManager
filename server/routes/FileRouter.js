@@ -7,6 +7,7 @@ import os from "os";
 import { upload } from "../files.js";
 import Ffmpeg from "fluent-ffmpeg";
 import { exec } from "child_process";
+import recursiveReadDir from "recursive-readdir";
 const fileRouter = Router();
 const status = {};
 
@@ -90,7 +91,7 @@ fileRouter.post("/setDirectory", requireLogin, async (req, res) => {
     const config = await ConfigModel.findOne({});
     config.mediaFilePath = filePath;
     await config.save();
-    res.json({ success: true, message: "File directory set" });
+    res.json({ success: true, message: "File directory set", config });
 });
 
 fileRouter.post(
@@ -127,26 +128,41 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                 message: "Converting Hi-Res to 16/44...",
             };
             for (let folder of selectedFolders) {
-                const files = await fs.readdir(
-                    `./temp/${req.sessionID}/${folder}`,
-                    {
-                        withFileTypes: true,
-                    }
+                // const files = await fs.readdir(
+                //     `./temp/${req.sessionID}/${folder}`,
+                //     {
+                //         withFileTypes: true,
+                //         recursive: true,
+                //     }
+                // );
+                const allFiles = await recursiveReadDir(`./temp/${req.sessionID}/${folder}`)
+                const flacFiles = allFiles.filter(
+                    (file) => file.endsWith(".flac")
                 );
-                const flacFiles = files.filter(
-                    (file) => file.isFile() && file.name.endsWith(".flac")
-                );
+                
+                // const flacFiles = allFiles.filter(
+                //     (file) => file.isFile() && file.name.endsWith(".flac")
+                // );
+
+        
                 let i = 0;
 
                 for (let file of flacFiles) {
-                    const inputPath = path.join(
-                        `./temp/${req.sessionID}/${folder}`,
-                        file.name
-                    );
-                    const outputPath = path.join(
-                        `./temp/${req.sessionID}/${folder}`,
-                        file.name.replace(".flac", "-16.flac")
-                    );
+                    
+                    // const inputPath = path.join(
+                    //     `./temp/${req.sessionID}/${folder}`,
+                    //     file.name
+                    // );
+                    // const outputPath = path.join(
+                    //     `./temp/${req.sessionID}/${folder}`,
+                    //     file.name.replace(".flac", "-16.flac")
+                    // );
+
+                    const inputPath = file;
+                    const outputPath = file.replace(".flac", "-16.flac");
+
+                    //keep structure of subfolders
+
                     status[req.sessionID] = {
                         message: `Converting Hi-Res to 16/44... ${(
                             (i / flacFiles.length) *
@@ -202,15 +218,21 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                     message: `Converting ${folder} to MP3`,
                 };
 
-                const files = await fs.readdir(
-                    `./temp/${req.sessionID}/${folder}`,
-                    {
-                        withFileTypes: true,
-                    }
+                // const files = await fs.readdir(
+                //     `./temp/${req.sessionID}/${folder}`,
+                //     {
+                //         withFileTypes: true,
+                //     }
+                // );
+                // const flacFiles = files.filter(
+                //     (file) => file.isFile() && file.name.endsWith(".flac")
+                // );
+
+                const allFiles = await recursiveReadDir(`./temp/${req.sessionID}/${folder}`)
+                const flacFiles = allFiles.filter(
+                    (file) => file.endsWith(".flac")
                 );
-                const flacFiles = files.filter(
-                    (file) => file.isFile() && file.name.endsWith(".flac")
-                );
+                
 
                 let i = 0;
                 for (let file of flacFiles) {
@@ -220,14 +242,8 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                             100
                         ).toFixed(2)}% complete`,
                     };
-                    const inputPath = path.join(
-                        `./temp/${req.sessionID}/${folder}`,
-                        file.name
-                    );
-                    const outputPath = path.join(
-                        `./temp/${req.sessionID}/${folder}`,
-                        file.name.replace(".flac", ".mp3")
-                    );
+                    const inputPath = file;
+                    const outputPath = file.replace(".flac", ".mp3");
 
                     await new Promise((resolve, reject) => {
                         new Ffmpeg({ source: inputPath })

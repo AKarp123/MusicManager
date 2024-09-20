@@ -18,8 +18,8 @@ const Home = () => {
    
     });
 
-
-    if (config.mediaFilePath === "") {
+    console.log(config.mediaFilePath)
+    if (config.mediaFilePath === "") { // initial music setup
         return (
             <PageBackdrop>
                 <Typography variant="h3" sx={{ textAlign: "center" }}>
@@ -29,6 +29,7 @@ const Home = () => {
             </PageBackdrop>
         );
     }
+
 
     return (
         <PageBackdrop>

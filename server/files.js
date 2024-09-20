@@ -1,5 +1,5 @@
 import multer from "multer";
-import fs from "fs";
+import fs from "node:fs/promises";
 
 
 
@@ -10,8 +10,11 @@ const destination = multer.diskStorage({
       
        
         if(album){
-            fs.mkdirSync(`./temp/${req.sessionID}/${album}`, { recursive: true });
-            cb(null, `./temp/${req.sessionID}/${album}`);
+            fs.mkdir(`./temp/${req.sessionID}/${album}`, { recursive: true })
+            .then(() => {
+                cb(null, `./temp/${req.sessionID}/${album}`);
+            })
+            
         }
         else {
             fs.mkdirSync(`./temp/${req.sessionID}`, { recursive: true });

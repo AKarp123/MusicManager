@@ -10,6 +10,10 @@ const configSchema = new Schema({
         type: String,
         default: "",
     },
+    adminAccountCreated: {
+        type: Boolean,
+        default: false,
+    }
 
     }
 );

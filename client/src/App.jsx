@@ -19,7 +19,7 @@ function App() {
     const [error, setError] = useState(null);
 
     const displayError = (errorMessage, variant = "error") => {
-        console.log("HELLO")
+        console.log("HELLO");
         setError({ errorMessage, variant });
     };
 
@@ -34,21 +34,21 @@ function App() {
                         <AuthRoute path="/" component={Home} />
                     </Switch>
                 </UserProvider>
-                {error && (
-                    <Snackbar
-                        open={error !== undefined && error !== null}
-                        autoHideDuration={2000}
+            </ErrorContext.Provider>
+            {error && (
+                <Snackbar
+                    open={error !== undefined && error !== null}
+                    autoHideDuration={2000}
+                    onClose={() => setError(null)}
+                >
+                    <Alert
+                        severity={error.variant}
                         onClose={() => setError(null)}
                     >
-                        <Alert
-                            severity={error.variant}
-                            onClose={() => setError(null)}
-                        >
-                            {error.errorMessage}
-                        </Alert>
-                    </Snackbar>
-                )}
-            </ErrorContext.Provider>
+                        {error.errorMessage}
+                    </Alert>
+                </Snackbar>
+            )}
         </ThemeProvider>
     );
 }

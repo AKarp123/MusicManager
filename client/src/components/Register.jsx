@@ -12,7 +12,7 @@ const Register = () => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const setError = useContext(ErrorContext);
     const history = useHistory();
-    const { user, setUser } = useContext(UserContext);
+    const { user, setUser, setConfig } = useContext(UserContext);
 
 
     useEffect(() => {
@@ -34,8 +34,10 @@ const Register = () => {
                     setError(res.data.message);
                     return;
                 }
-                setError("User Created!", "success");
-                setUser(res.data.user);
+                setError("User Created! Please Login", "success");
+                setUser(null)
+                history.push("/login");
+                
             })
             .catch((err) => {
                 console.log(err);

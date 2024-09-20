@@ -59,7 +59,10 @@
   "passport": "^0.7.0",
   
     
-  "passport-local-mongoose": "^8.0.0"
+  "passport-local-mongoose": "^8.0.0",
+  
+    
+  "recursive-readdir": "^2.2.3"
   
   }
 }
