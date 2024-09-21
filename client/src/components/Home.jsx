@@ -48,7 +48,9 @@ const Home = () => {
                             setView={setView}
                         />
                     ) : (
-                        <FileExplorer setView={setView}/>
+                        <FileExplorer setView={setView}
+                            setOptions={setOptions}
+                        />
                     )
                 }
             </Container>

@@ -16,7 +16,7 @@ import ErrorContext from "../../ErrorContext";
 import NewDirectoryPopup from "./NewDirectoryPopup";
 
 
-const FileExplorer = ({ setFilePath, setView }) => {
+const FileExplorer = ({ setFilePath, setView, setOptions }) => {
     const [state, dispatch] = useReducer(reducer, {
         directoryList: [],
         currentDirectory: "",
@@ -94,6 +94,7 @@ const FileExplorer = ({ setFilePath, setView }) => {
             .then((res) => {
                 if (res.data.success) {
                     setError("Files moved successfully, scan media server to see changes!", "success");
+                    setOptions({ ...setOptions, folders: [] });
                     setView(0);
                 }
                 else {
