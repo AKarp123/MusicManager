@@ -15,7 +15,6 @@ import FolderIcon from "@mui/icons-material/Folder";
 import ErrorContext from "../../ErrorContext";
 import NewDirectoryPopup from "./NewDirectoryPopup";
 
-
 const FileExplorer = ({ setFilePath, setView, setOptions }) => {
     const [state, dispatch] = useReducer(reducer, {
         directoryList: [],
@@ -78,7 +77,6 @@ const FileExplorer = ({ setFilePath, setView, setOptions }) => {
                         type: "SET_CURRENT_DIRECTORY",
                         payload: state.currentDirectory + "/" + directoryName,
                     });
-
                 } else {
                     setError("Failed to create directory", "error");
                 }
@@ -89,23 +87,29 @@ const FileExplorer = ({ setFilePath, setView, setOptions }) => {
         setError("Moving files, please wait...", "info");
         axios
             .post("/api/moveToDirectory", {
-                directoryPath: state.currentDirectory
+                directoryPath: state.currentDirectory,
             })
             .then((res) => {
                 if (res.data.success) {
-                    setError("Files moved successfully, scan media server to see changes!", "success");
-                    setOptions({ ...setOptions, folders: [] });
+                    setError(
+                        "Files moved successfully, scan media server to see changes!",
+                        "success"
+                    );
+                    setOptions({
+                        replayGain: true,
+                        convertToMp3: false,
+                        convertHiResFlac: false,
+                        folders: [],
+                    });
                     setView(0);
-                }
-                else {
+                } else {
                     setError("Failed to move files", "error");
                 }
             })
             .catch((err) => {
-                console.log(err)
-            })
-
-    }
+                console.log(err);
+            });
+    };
 
     const handleClose = () => {
         dispatch({ type: "TOGGLE_NEW_FOLDER_POPUP" });
@@ -160,7 +164,7 @@ const FileExplorer = ({ setFilePath, setView, setOptions }) => {
                 {!setFilePath && (
                     <Button
                         sx={{
-                            color: "lightgreen"
+                            color: "lightgreen",
                         }}
                         onClick={moveFolders}
                     >
