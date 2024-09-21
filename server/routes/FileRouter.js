@@ -11,6 +11,7 @@ import recursiveReadDir from "recursive-readdir";
 const fileRouter = Router();
 const status = {};
 
+
 fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
     const config = await ConfigModel.findOne({});
 
@@ -135,20 +136,20 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                 //         recursive: true,
                 //     }
                 // );
-                const allFiles = await recursiveReadDir(`./temp/${req.sessionID}/${folder}`)
-                const flacFiles = allFiles.filter(
-                    (file) => file.endsWith(".flac")
+                const allFiles = await recursiveReadDir(
+                    `./temp/${req.sessionID}/${folder}`
                 );
-                
+                const flacFiles = allFiles.filter((file) =>
+                    file.endsWith(".flac")
+                );
+
                 // const flacFiles = allFiles.filter(
                 //     (file) => file.isFile() && file.name.endsWith(".flac")
                 // );
 
-        
                 let i = 0;
 
                 for (let file of flacFiles) {
-                    
                     // const inputPath = path.join(
                     //     `./temp/${req.sessionID}/${folder}`,
                     //     file.name
@@ -228,47 +229,54 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                 //     (file) => file.isFile() && file.name.endsWith(".flac")
                 // );
 
-                const allFiles = await recursiveReadDir(`./temp/${req.sessionID}/${folder}`)
-                const flacFiles = allFiles.filter(
-                    (file) => file.endsWith(".flac")
+                const allFiles = await recursiveReadDir(
+                    `./temp/${req.sessionID}/${folder}`
                 );
-                
+                const flacFiles = allFiles.filter((file) =>
+                    file.endsWith(".flac")
+                );
 
                 let i = 0;
-                for (let file of flacFiles) {
-                    status[req.sessionID] = {
-                        message: `Converting ${folder} to MP3... ${(
-                            (i / flacFiles.length) *
-                            100
-                        ).toFixed(2)}% complete`,
-                    };
-                    const inputPath = file;
-                    const outputPath = file.replace(".flac", ".mp3");
+                const threads = process.env.THREADS || 4;
+                while (i < flacFiles.length) {
+                    const batch = flacFiles.slice(i, i + threads);
 
-                    await new Promise((resolve, reject) => {
-                        new Ffmpeg({ source: inputPath })
-                            .audioCodec("libmp3lame")
-                            .audioBitrate(320)
-                            .save(outputPath)
-                            .on("end", () => {
-                                console.log(file);
-                                fs.rm(inputPath)
-                                    .then(() => {
-                                        resolve();
+                    await Promise.all(
+                        batch.map(async (file) => {
+                            const inputPath = file;
+                            const outputPath = file.replace(".flac", ".mp3");
+
+                            
+
+                            await new Promise((resolve, reject) => {
+                                new Ffmpeg({ source: inputPath })
+                                    .audioCodec("libmp3lame")
+                                    .audioBitrate(320)
+                                    .save(outputPath)
+                                    .on("end", () => {
+                                        fs.rm(inputPath)
+                                            .then(() => {
+                                                i++;
+                                                status[req.sessionID] = {
+                                                    message: `Converting ${folder} to MP3... ${(
+                                                        (i / flacFiles.length) *
+                                                        100
+                                                    ).toFixed(2)}% complete`,
+                                                };
+                                                resolve();
+                                            })
+                                            .catch((err) => {
+                                                console.log(err);
+                                                reject();
+                                            });
                                     })
-                                    .catch((err) => {
+                                    .on("error", (err) => {
                                         console.log(err);
                                         reject();
                                     });
-                            })
-                            .on("error", (err) => {
-                                console.log(err);
-                                reject();
                             });
-                    });
-
-
-                    i++;
+                        })
+                    );
                 }
             }
         }
@@ -325,7 +333,7 @@ fileRouter.get("/status", requireLogin, async (req, res) => {
             status[req.sessionID] = null;
             res.end();
         }
-    }, 500);
+    }, 100);
 
     req.on("close", () => {
         clearInterval(statusMessage);
@@ -345,14 +353,19 @@ fileRouter.post("/moveToDirectory", requireLogin, async (req, res) => {
 
     fs.cp(`./temp/${req.sessionID}`, outputDirectory, { recursive: true })
         .then(() => {
-            fs.rm(`./temp/${
-                req.sessionID
-            }`, { recursive: true })
+            fs.rm(`./temp/${req.sessionID}`, { recursive: true })
                 .then(() => {
-                    res.json({ success: true, message: "Files moved successfully" });
+                    res.json({
+                        success: true,
+                        message: "Files moved successfully",
+                    });
                 })
                 .catch((err) => {
-                    res.json({ success: false, message: "Failed to move files", err });
+                    res.json({
+                        success: false,
+                        message: "Failed to move files",
+                        err,
+                    });
                 });
         })
         .catch((err) => {
