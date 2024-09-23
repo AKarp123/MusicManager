@@ -165,7 +165,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                     //keep structure of subfolders
 
                     status[req.sessionID] = {
-                        message: `Converting Hi-Res to 16/44... ${(
+                        message: `Converting ${folder} to 16bit/44.1 khz... ${(
                             (i / flacFiles.length) *
                             100
                         ).toFixed(2)}% complete`,
