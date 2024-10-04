@@ -110,7 +110,7 @@ const Login = () => {
                             type="password"
                             onChange={(e) => setPassword(e.target.value)}
                         />
-                        <Button variant={"contained"} onClick={login}>
+                        <Button variant={"contained"} onClick={login} type="submit">
                             Login
                         </Button>
                     </Stack>
