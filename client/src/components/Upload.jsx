@@ -7,7 +7,6 @@ import ErrorContext from "../ErrorContext";
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
 import FilePondPluginFileMetadata from "filepond-plugin-file-metadata";
 
-
 // Register the plugins
 registerPlugin(FilePondPluginFileValidateType, FilePondPluginFileMetadata);
 
@@ -15,16 +14,17 @@ registerPlugin(FilePondPluginFileValidateType, FilePondPluginFileMetadata);
 const Upload = ({ setView, options, setOptions }) => {
     const [files, setFiles] = useState([]);
     const setError = useContext(ErrorContext);
+    const [relativePath, setRelativePath] = useState("");
     
 
     const handleUpdateFiles = (fileItems) => {
         const files = fileItems.map((fileItem, i) => {
             if (fileItem.file) {
-                console.log(fileItem.file.webkitRelativePath );
+                // console.log(fileItem.file.webkitRelativePath );
                 return {
                     file: fileItem.file,
                     relativePath:
-                        fileItem.file.webkitRelativePath.split("/")[0]
+                        fileItem.relativePath,
                 };
             }
         });
@@ -75,9 +75,13 @@ const Upload = ({ setView, options, setOptions }) => {
         abort
     ) => {
         const formData = new FormData();
-    
-        const relativePath = file.webkitRelativePath.split("/").slice(0, -1).join("/");
 
+        
+        //check if file is a blob
+        
+        
+        const relativePath = file._relativePath || file.webkitRelativePath.split("/").slice(0, -1).join("/");
+        console.log(relativePath);
         formData.set("relativePaths", relativePath);
         formData.append(fieldName, file, file.name);
 
@@ -129,6 +133,7 @@ const Upload = ({ setView, options, setOptions }) => {
                 }}
                 elevation={16}
             >
+               
                 <FilePond
                     files={files.map((file) => file.file)}
                     onupdatefiles={handleUpdateFiles}
@@ -142,7 +147,7 @@ const Upload = ({ setView, options, setOptions }) => {
                         revert: null,
                     }}
                     name="files"
-                    labelIdle='Click <span class="filepond--label-action">Browse</span> to upload'
+                    labelIdle='Click <span class="filepond--label-action">Browse</span> to upload (directories only)'
                     allowDirectoriesOnly={true}
                     maxParallelUploads={12}
                     credits={false}

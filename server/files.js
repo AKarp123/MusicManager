@@ -17,7 +17,7 @@ const destination = multer.diskStorage({
             
         }
         else {
-            fs.mkdirSync(`./temp/${req.sessionID}`, { recursive: true });
+            fs.mkdir(`./temp/${req.sessionID}`, { recursive: true });
             cb(null, `./temp/${req.sessionID}`);
         }
     
