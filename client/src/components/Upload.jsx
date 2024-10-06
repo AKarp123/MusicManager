@@ -14,7 +14,6 @@ registerPlugin(FilePondPluginFileValidateType, FilePondPluginFileMetadata);
 const Upload = ({ setView, options, setOptions }) => {
     const [files, setFiles] = useState([]);
     const setError = useContext(ErrorContext);
-    const [relativePath, setRelativePath] = useState("");
     
 
     const handleUpdateFiles = (fileItems) => {
@@ -81,7 +80,7 @@ const Upload = ({ setView, options, setOptions }) => {
         
         
         const relativePath = file._relativePath || file.webkitRelativePath.split("/").slice(0, -1).join("/");
-        console.log(relativePath);
+    
         formData.set("relativePaths", relativePath);
         formData.append(fieldName, file, file.name);
 
@@ -110,7 +109,8 @@ const Upload = ({ setView, options, setOptions }) => {
                 
                 if (res.data.success) {
                     load(res.data.message);
-                    const topFolder = relativePath.split("/")[0]; //ignore subfolders treat a folder as top level if it has subfolders
+                    const topFolder = relativePath.split("/")[0] || relativePath.split("/")[1]; //ignore subfolders treat a folder as top level if it has subfolders
+                    console.log(relativePath);
                     if (options.folders.indexOf(topFolder) === -1) {
                         setOptions({
                             ...options,
