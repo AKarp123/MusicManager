@@ -79,8 +79,8 @@ const Upload = ({ setView, options, setOptions }) => {
         //check if file is a blob
         
         
-        const relativePath = file._relativePath || file.webkitRelativePath.split("/").slice(0, -1).join("/");
-    
+        const relativePath = file._relativePath.split("/").slice(0, -1).join("/") || file.webkitRelativePath.split("/").slice(0, -1).join("/");
+        console.log(relativePath)
         formData.set("relativePaths", relativePath);
         formData.append(fieldName, file, file.name);
 
@@ -110,7 +110,7 @@ const Upload = ({ setView, options, setOptions }) => {
                 if (res.data.success) {
                     load(res.data.message);
                     const topFolder = relativePath.split("/")[0] || relativePath.split("/")[1]; //ignore subfolders treat a folder as top level if it has subfolders
-                    console.log(relativePath);
+                    
                     if (options.folders.indexOf(topFolder) === -1) {
                         setOptions({
                             ...options,
