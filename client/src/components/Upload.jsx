@@ -147,12 +147,11 @@ const Upload = ({ setView, options, setOptions }) => {
                         revert: null,
                     }}
                     name="files"
-                    labelIdle='Click <span class="filepond--label-action">Browse</span> to upload (directories only)'
+                    labelIdle='Click <span class="filepond--label-action">Browse</span> to upload (directories only) or drag and drop files'
                     allowDirectoriesOnly={true}
                     maxParallelUploads={12}
                     credits={false}
                     allowFileMetadata={true}
-                    
                 />
                 <Box
                     sx={{

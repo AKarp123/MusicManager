@@ -8,9 +8,9 @@ import { upload } from "../files.js";
 import Ffmpeg from "fluent-ffmpeg";
 import { exec } from "child_process";
 import recursiveReadDir from "recursive-readdir";
+import getFolderSize from "get-folder-size";
 const fileRouter = Router();
 const status = {};
-
 
 fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
     const config = await ConfigModel.findOne({});
@@ -158,7 +158,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                     //     `./temp/${req.sessionID}/${folder}`,
                     //     file.name.replace(".flac", "-16.flac")
                     // );
-
+                    console.log(file);
                     const inputPath = file;
                     const outputPath = file.replace(".flac", "-16.flac");
 
@@ -179,7 +179,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                     reject(err);
                                 }
                                 // console.log("file is already 16bit")
-
+                                console.log(data);
                                 resolve(data);
                             }
                         );
@@ -245,8 +245,6 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                         batch.map(async (file) => {
                             const inputPath = file;
                             const outputPath = file.replace(".flac", ".mp3");
-
-                            
 
                             await new Promise((resolve, reject) => {
                                 new Ffmpeg({ source: inputPath })
@@ -338,6 +336,81 @@ fileRouter.get("/status", requireLogin, async (req, res) => {
     req.on("close", () => {
         clearInterval(statusMessage);
     });
+});
+
+fileRouter.get("/getFolderInfo", requireLogin, async (req, res) => {
+    const { folder } = req.query;
+
+    try {
+        let { size } = await getFolderSize(
+            `./temp/${req.sessionID}/${folder}`
+        );
+        
+        //return either size in mb or gb
+        
+        if (size < 1000000000) {
+            size = (size / 1000000).toFixed(2) + " MB";
+        } else {
+            size = (size / 1000000000).toFixed(2) + " GB";
+        }
+        
+
+        const files = await recursiveReadDir(
+            `./temp/${req.sessionID}/${folder}`
+        );
+
+        const audioFiles = files.filter((file) => (file.endsWith(".flac") || file.endsWith(".mp3")));
+
+        const probe = await Promise.all(audioFiles.map(file => {
+            return new Promise((resolve, reject) => {
+                new Ffmpeg(file).ffprobe((err, data) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve(data);
+                });
+            });
+        })).catch(err => {
+            throw new Error(`Error probing files: ${err.message}`);
+        });
+
+        console.log(probe[0].format)
+
+        const totDuration = probe.reduce((acc, curr) => {
+            return acc + curr.format.duration;
+        }, 0);
+        const duration = (totDuration / 60).toFixed(0) + ":" + (totDuration % 60).toFixed(0); 
+
+        const avgBitrate = (((probe.reduce((acc, curr) => {
+            return acc + curr.format.bit_rate;
+        }, 0)) / probe.length) / 1000).toFixed(0) + " kbps";
+
+        const freq = (((probe[0].streams[0].sample_rate) / 1000).toFixed(1)) + " kHz";
+        const bitsPerSample = probe[0].streams[0].bits_per_raw_sample + " bits";
+        const type = probe[0].streams[0].codec_name;
+
+        res.json({
+            success: true,
+            data: {
+                albumArtist: probe[0].format.tags.album_artist,
+                folderName: folder,
+                size,
+                duration,
+                avgBitrate,
+                frequency: freq,
+                bitsPerSample,
+                type
+            }
+        });
+
+
+    } catch (err) {
+        res.json({
+            success: false,
+            message: "Failed to get folder size",
+            error: err,
+        });
+    }
 });
 
 fileRouter.post("/moveToDirectory", requireLogin, async (req, res) => {
