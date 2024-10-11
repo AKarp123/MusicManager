@@ -59,7 +59,8 @@ const PreProcess = ({ options, setView }) => {
         try {
             const info = await Promise.all(
                 options.folders.map(async (folder) => {
-                    const res = await axios.get(`/api/getFolderInfo?folder=${folder}`);
+                    const encodedFolder = encodeURIComponent(folder);
+                    const res = await axios.get(`/api/getFolderInfo?folder=${encodedFolder}`);
                     return res.data.data;
                 })
             );
