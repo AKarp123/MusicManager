@@ -42,14 +42,16 @@ const Login = () => {
         axios
             .post("/api/login", { username, password })
             .then((res) => {
-                if (!res.data.success) {
-                    setError(res.data.message);
-                    return;
+                if(res.data.success) {
+
+                    setUser(res.data.user);
+                    setConfig(res.data.config);
+                    setError("You have been successfully logged in", "success");
+                    history.replace("/")
                 }
-                setUser(res.data.user);
-                setConfig(res.data.config);
-                setError("You have been successfully logged in", "success");
-                history.replace("/")
+                else {
+                    setError(res.data.message, "error");
+                }
             })
             .catch((err) => {
                 console.log(err);
