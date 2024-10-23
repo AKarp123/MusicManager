@@ -4,9 +4,9 @@ import axios from "axios";
 import {
     List,
     ListItem,
-    ListItemIcon,
     ListItemText,
     ListItemButton,
+    ListItemIcon,
     TextField,
     Stack,
     Button,
@@ -14,32 +14,20 @@ import {
 import FolderIcon from "@mui/icons-material/Folder";
 import ErrorContext from "../../ErrorContext";
 import NewDirectoryPopup from "./NewDirectoryPopup";
+import SelectFoldersPopup from "./SelectFoldersPopup";
 
-const FileExplorer = ({ setFilePath, setView, setOptions }) => {
+const FileExplorer = ({ setFilePath, setView, setOptions, options }) => {
     const [state, dispatch] = useReducer(reducer, {
         directoryList: [],
         currentDirectory: "",
         directoryPopup: false,
+        selectPopup: false,
+        folders: options.folders,
     });
 
     const setError = useContext(ErrorContext);
 
-    useEffect(() => {
-        axios
-            .get("/api/listDirectories", {
-                params: { directory: state.currentDirectory },
-            })
-            .then((res) => {
-                if (res.data.success) {
-                    dispatch({
-                        type: "SET_DIRECTORY_LIST",
-                        payload: res.data.directories,
-                    });
-                }
-            });
-    }, []);
-
-    useEffect(() => {
+    const fetchDirectories = () => {
         axios
             .get("/api/listDirectories", {
                 params: { directory: state.currentDirectory },
@@ -61,6 +49,14 @@ const FileExplorer = ({ setFilePath, setView, setOptions }) => {
                     });
                 }
             });
+    };
+
+    useEffect(() => {
+        fetchDirectories();
+    }, []);
+
+    useEffect(() => {
+        fetchDirectories();
     }, [state.currentDirectory]);
 
     const createNewDirectory = (directoryName) => {
@@ -83,11 +79,12 @@ const FileExplorer = ({ setFilePath, setView, setOptions }) => {
             });
     };
 
-    const moveFolders = () => {
+    const moveFolders = (directories) => {
         setError("Moving files, please wait...", "info");
         axios
             .post("/api/moveToDirectory", {
                 directoryPath: state.currentDirectory,
+                directories,
             })
             .then((res) => {
                 if (res.data.success) {
@@ -95,13 +92,23 @@ const FileExplorer = ({ setFilePath, setView, setOptions }) => {
                         "Files moved successfully, scan media server to see changes!",
                         "success"
                     );
-                    setOptions({
-                        replayGain: true,
-                        convertToMp3: false,
-                        convertHiResFlac: false,
-                        folders: [],
+
+                    fetchDirectories();
+
+                    const folders = state.folders.filter((folder) => {
+                        return !directories.includes(folder);
                     });
-                    setView(0);
+                    dispatch({ type: "SET_FOLDERS", payload: folders });
+
+                    if(folders.length === 0) {
+                        setOptions({
+                            replayGain: true,
+                            convertToMp3: false,
+                            convertHiResFlac: false,
+                            folders: [],
+                        });
+                        setView(0);
+                    }
                 } else {
                     setError("Failed to move files", "error");
                 }
@@ -111,7 +118,7 @@ const FileExplorer = ({ setFilePath, setView, setOptions }) => {
             });
     };
 
-    const handleClose = () => {
+    const handleNewFolderPopup = () => {
         dispatch({ type: "TOGGLE_NEW_FOLDER_POPUP" });
     };
 
@@ -158,7 +165,7 @@ const FileExplorer = ({ setFilePath, setView, setOptions }) => {
                     <NewDirectoryPopup
                         createNewDirectory={createNewDirectory}
                         newFolderPopup={state.directoryPopup}
-                        handleClose={handleClose}
+                        handleClose={handleNewFolderPopup}
                     />
                 )}
                 {!setFilePath && (
@@ -166,10 +173,22 @@ const FileExplorer = ({ setFilePath, setView, setOptions }) => {
                         sx={{
                             color: "lightgreen",
                         }}
-                        onClick={moveFolders}
+                        onClick={() =>
+                            dispatch({ type: "TOGGLE_SELECT_POPUP" })
+                        }
                     >
                         Select Folder
                     </Button>
+                )}
+                {state.selectPopup && (
+                    <SelectFoldersPopup
+                        folders={state.folders}
+                        selectPopup={state.selectPopup}
+                        moveFolders={moveFolders}
+                        handleClose={() =>
+                            dispatch({ type: "TOGGLE_SELECT_POPUP" })
+                        }
+                    />
                 )}
             </Stack>
             <List

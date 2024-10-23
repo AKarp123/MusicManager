@@ -49,6 +49,7 @@ const Home = () => {
                         />
                     ) : (
                         <FileExplorer setView={setView}
+                            options={options}
                             setOptions={setOptions}
                         />
                     )

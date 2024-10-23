@@ -94,6 +94,7 @@ const PreProcess = ({ options, setView }) => {
                 if (res.data.success) {
                     setError("Files Processed successfully!", "success");
                     fetchFolderInfo();
+                    setIsProcessing(2);
                 } else {
                     setError(res.data.message);
                 }

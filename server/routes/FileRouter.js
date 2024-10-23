@@ -415,23 +415,27 @@ fileRouter.get("/getFolderInfo", requireLogin, async (req, res) => {
 
 fileRouter.post("/moveToDirectory", requireLogin, async (req, res) => {
     const { directoryPath } = req.body;
+    const { directories } = req.body;
 
+    if(directories === undefined || directories.length === 0) {
+        res.json({ success: false, message: "No directories provided" });
+        return;
+    } 
     const config = await ConfigModel.findOne({});
 
-    const outputDirectory = path.join(
-        os.homedir(),
-        config.mediaFilePath,
-        directoryPath
-    );
-
-    fs.cp(`./temp/${req.sessionID}`, outputDirectory, { recursive: true })
+    
+    
+    for(let directory of directories) {
+        const outputDirectory = path.join(
+            os.homedir(),
+            config.mediaFilePath,
+            directoryPath,
+            directory
+        );
+        fs.cp(`./temp/${req.sessionID}/${directory}`, outputDirectory, { recursive: true })
         .then(() => {
-            fs.rm(`./temp/${req.sessionID}`, { recursive: true })
+            fs.rm(`./temp/${req.sessionID}/${directory}`, { recursive: true })
                 .then(() => {
-                    res.json({
-                        success: true,
-                        message: "Files moved successfully",
-                    });
                 })
                 .catch((err) => {
                     res.json({
@@ -444,6 +448,10 @@ fileRouter.post("/moveToDirectory", requireLogin, async (req, res) => {
         .catch((err) => {
             res.json({ success: false, message: "Failed to move files", err });
         });
+    }
+    res.json({ success: true, message: "Files moved successfully" });
+
+    
 });
 
 // fileRouter.post("/upload", requireLogin, upload.array("files"), (req, res) => {
