@@ -80,7 +80,7 @@ const Upload = ({ setView, options, setOptions }) => {
         
         
         const relativePath = file._relativePath.split("/").slice(0, -1).join("/") || file.webkitRelativePath.split("/").slice(0, -1).join("/");
-        console.log(relativePath)
+    
         formData.set("relativePaths", relativePath);
         formData.append(fieldName, file, file.name);
 
@@ -109,12 +109,13 @@ const Upload = ({ setView, options, setOptions }) => {
                 
                 if (res.data.success) {
                     load(res.data.message);
-                    const topFolder = relativePath.split("/")[0] || relativePath.split("/")[1]; //ignore subfolders treat a folder as top level if it has subfolders
-                    
-                    if (options.folders.indexOf(topFolder) === -1) {
+                    const topFolder = relativePath.split("/")[0] || relativePath.split("/")[1]; //ignore subfolders treat a folder as top
+                    let folderList = options.folders;
+                    if (folderList.indexOf(topFolder) === -1) {
+                        folderList.push(topFolder)
                         setOptions({
                             ...options,
-                            folders: [...options.folders, topFolder],
+                            folders: folderList,
                         });
                     }
                 }
