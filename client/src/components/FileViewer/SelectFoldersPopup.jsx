@@ -50,7 +50,7 @@ const SelectFoldersPopup = ({
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose}>Cancel</Button>
-                    <Button type="submit">Create</Button>
+                    <Button type="submit">Move</Button>
                 </DialogActions>
             </form>
         </Dialog>

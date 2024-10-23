@@ -160,7 +160,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                     // );
                     console.log(file);
                     const inputPath = file;
-                    const outputPath = file.replace(".flac", "-16.flac");
+                    const outputPath = file.replace(".flac", ".temp.flac");
 
                     //keep structure of subfolders
 
@@ -193,15 +193,17 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                             .audioFrequency(44100)
                             .outputOptions("-sample_fmt", "s16")
                             .save(outputPath)
-                            .on("end", () => {
-                                fs.rm(inputPath)
-                                    .then(() => {
-                                        resolve();
-                                    })
-                                    .catch((err) => {
-                                        console.log(err);
-                                        reject();
-                                    });
+                            .on("end", async () => {
+                                try {
+                                    await fs.rm(inputPath);
+                                    await fs.rename(outputPath, inputPath);
+                                    i++;
+                                }
+                                catch (err) {
+                                    console.log(err);
+                                    reject();
+                                }
+                                resolve();
                             })
                             .on("error", (err) => {
                                 console.log(err);
