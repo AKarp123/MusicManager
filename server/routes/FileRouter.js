@@ -158,7 +158,6 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                     //     `./temp/${req.sessionID}/${folder}`,
                     //     file.name.replace(".flac", "-16.flac")
                     // );
-                    console.log(file);
                     const inputPath = file;
                     const outputPath = file.replace(".flac", ".temp.flac");
 
@@ -171,6 +170,8 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                         ).toFixed(2)}% complete`,
                     };
 
+        
+
                     //check if file is already 16/44
                     const probe = await new Promise((resolve, reject) => {
                         new Ffmpeg({ source: inputPath }).ffprobe(
@@ -179,7 +180,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                     reject(err);
                                 }
                                 // console.log("file is already 16bit")
-                                console.log(data);
+    
                                 resolve(data);
                             }
                         );
@@ -197,7 +198,6 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                 try {
                                     await fs.rm(inputPath);
                                     await fs.rename(outputPath, inputPath);
-                                    i++;
                                 }
                                 catch (err) {
                                     console.log(err);
@@ -376,7 +376,6 @@ fileRouter.get("/getFolderInfo", requireLogin, async (req, res) => {
             throw new Error(`Error probing files: ${err.message}`);
         });
 
-        console.log(probe[0].format)
 
         const totDuration = probe.reduce((acc, curr) => {
             return acc + curr.format.duration;
