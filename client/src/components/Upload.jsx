@@ -80,6 +80,7 @@ const Upload = ({ setView, options, setOptions }) => {
         
         
         const relativePath = file._relativePath.split("/").slice(0, -1).join("/") || file.webkitRelativePath.split("/").slice(0, -1).join("/");
+        console.log(file)
     
         formData.set("relativePaths", relativePath);
         formData.append(fieldName, file, file.name);

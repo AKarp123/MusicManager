@@ -170,8 +170,6 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                         ).toFixed(2)}% complete`,
                     };
 
-        
-
                     //check if file is already 16/44
                     const probe = await new Promise((resolve, reject) => {
                         new Ffmpeg({ source: inputPath }).ffprobe(
@@ -180,7 +178,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                     reject(err);
                                 }
                                 // console.log("file is already 16bit")
-    
+
                                 resolve(data);
                             }
                         );
@@ -198,8 +196,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                 try {
                                     await fs.rm(inputPath);
                                     await fs.rename(outputPath, inputPath);
-                                }
-                                catch (err) {
+                                } catch (err) {
                                     console.log(err);
                                     reject();
                                 }
@@ -234,20 +231,56 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                 const allFiles = await recursiveReadDir(
                     `./temp/${req.sessionID}/${folder}`
                 );
-                const flacFiles = allFiles.filter((file) =>
-                    file.endsWith(".flac")
-                );
+                const audioFiles = (
+                    await Promise.all(
+                        allFiles.map(async (file) => {
+                            try {
+                                const data = await new Promise(
+                                    (resolve, reject) => {
+                                        new Ffmpeg(file).ffprobe(
+                                            (err, data) => {
+                                                if (err) {
+                                                    return reject("error"); // Reject on error
+                                                }
+                                                resolve(data);
+                                            }
+                                        );
+                                    }
+                                );
+                                if (
+                                    data.streams[0].codec_type === "audio" &&
+                                    data.streams[0].codec_name !== "mp3"
+                                ) {
+                                    return file;
+                                }
+
+                                return null;
+                            } catch (err) {
+                                return null;
+                            }
+                        })
+                    )
+                ).filter((file) => file !== null); // Filter out null values
+
+                console.log(audioFiles);
 
                 let i = 0;
                 const threads = process.env.THREADS || 4;
-                while (i < flacFiles.length) {
-                    const batch = flacFiles.slice(i, i + threads);
+                while (i < audioFiles.length) {
+                    const batch = audioFiles.slice(i, i + threads);
 
                     await Promise.all(
                         batch.map(async (file) => {
                             const inputPath = file;
-                            const outputPath = file.replace(".flac", ".mp3");
-
+                            if (inputPath.endsWith(".mp3")) {
+                                i++;
+                                return;
+                            }
+                            const outputPath = file.replace(
+                                file.split(".")[file.split(".").length - 1],
+                                ".mp3"
+                            );
+                            console.log(inputPath, outputPath);
                             await new Promise((resolve, reject) => {
                                 new Ffmpeg({ source: inputPath })
                                     .audioCodec("libmp3lame")
@@ -259,7 +292,8 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                                 i++;
                                                 status[req.sessionID] = {
                                                     message: `Converting ${folder} to MP3... ${(
-                                                        (i / flacFiles.length) *
+                                                        (i /
+                                                            audioFiles.length) *
                                                         100
                                                     ).toFixed(2)}% complete`,
                                                 };
@@ -342,73 +376,86 @@ fileRouter.get("/status", requireLogin, async (req, res) => {
 
 fileRouter.get("/getFolderInfo", requireLogin, async (req, res) => {
     const { folder } = req.query;
+    // console.log(folder)
 
     try {
-        let { size } = await getFolderSize(
-            `./temp/${req.sessionID}/${folder}`
-        );
-        
+        let { size } = await getFolderSize(`./temp/${req.sessionID}/${folder}`);
+
         //return either size in mb or gb
-        
+
         if (size < 1000000000) {
             size = (size / 1000000).toFixed(2) + " MB";
         } else {
             size = (size / 1000000000).toFixed(2) + " GB";
         }
-        
 
         const files = await recursiveReadDir(
             `./temp/${req.sessionID}/${folder}`
         );
 
-        const audioFiles = files.filter((file) => (file.endsWith(".flac") || file.endsWith(".mp3")));
+        const audioFiles = [];
+        let totDuration = 0;
+        let avgBitrate = 0;
 
-        const probe = await Promise.all(audioFiles.map(file => {
-            return new Promise((resolve, reject) => {
-                new Ffmpeg(file).ffprobe((err, data) => {
-                    if (err) {
-                        return reject(err);
+        await Promise.all(
+            files.map(async (file) => {
+                try {
+                    const data = await new Promise((resolve, reject) => {
+                        new Ffmpeg(file).ffprobe((err, data) => {
+                            if (err) {
+                                reject("error");
+                            }
+                            resolve(data);
+                        });
+                    });
+
+                    if (data.streams[0].codec_type === "audio") {
+                        audioFiles.push(file);
+                        totDuration += data.format.duration;
+                        avgBitrate += data.format.bit_rate;
                     }
-                    resolve(data);
-                });
+                } catch (err) {}
+            })
+        );
+
+        const duration =
+            (totDuration / 60).toFixed(0) + ":" + (totDuration % 60).toFixed(0);
+
+        avgBitrate =
+            (avgBitrate / audioFiles.length / 1000).toFixed(0) + " kbps";
+        // console.log(audioFiles[0]);
+        const probe = await new Promise((resolve, reject) => {
+            new Ffmpeg(audioFiles[0]).ffprobe((err, data) => {
+                if (err) {
+                    // console.log(err)
+                    reject(err);
+                }
+                resolve(data);
             });
-        })).catch(err => {
-            throw new Error(`Error probing files: ${err.message}`);
         });
 
-
-        const totDuration = probe.reduce((acc, curr) => {
-            return acc + curr.format.duration;
-        }, 0);
-        const duration = (totDuration / 60).toFixed(0) + ":" + (totDuration % 60).toFixed(0); 
-
-        const avgBitrate = (((probe.reduce((acc, curr) => {
-            return acc + curr.format.bit_rate;
-        }, 0)) / probe.length) / 1000).toFixed(0) + " kbps";
-
-        const freq = (((probe[0].streams[0].sample_rate) / 1000).toFixed(1)) + " kHz";
-        const bitsPerSample = probe[0].streams[0].bits_per_raw_sample + " bits";
-        const type = probe[0].streams[0].codec_name;
+        const freq = (probe.streams[0].sample_rate / 1000).toFixed(1) + " kHz";
+        const bitsPerSample = probe.streams[0].bits_per_raw_sample + " bits";
+        const type = probe.streams[0].codec_name;
 
         res.json({
             success: true,
             data: {
-                albumArtist: probe[0].format.tags.album_artist,
+                albumArtist: probe.format.tags.album_artist,
                 folderName: folder,
                 size,
                 duration,
                 avgBitrate,
                 frequency: freq,
                 bitsPerSample,
-                type
-            }
+                type,
+            },
         });
-
-
     } catch (err) {
+        console.log(err);
         res.json({
             success: false,
-            message: "Failed to get folder size",
+            message: "Failed to get folder info",
             error: err,
         });
     }
@@ -418,77 +465,44 @@ fileRouter.post("/moveToDirectory", requireLogin, async (req, res) => {
     const { directoryPath } = req.body;
     const { directories } = req.body;
 
-    if(directories === undefined || directories.length === 0) {
+    if (directories === undefined || directories.length === 0) {
         res.json({ success: false, message: "No directories provided" });
         return;
-    } 
+    }
     const config = await ConfigModel.findOne({});
 
-    
-    
-    for(let directory of directories) {
+    for (let directory of directories) {
         const outputDirectory = path.join(
             os.homedir(),
             config.mediaFilePath,
             directoryPath,
             directory
         );
-        fs.cp(`./temp/${req.sessionID}/${directory}`, outputDirectory, { recursive: true })
-        .then(() => {
-            fs.rm(`./temp/${req.sessionID}/${directory}`, { recursive: true })
-                .then(() => {
-                })
-                .catch((err) => {
-                    res.json({
-                        success: false,
-                        message: "Failed to move files",
-                        err,
-                    });
-                });
+        fs.cp(`./temp/${req.sessionID}/${directory}`, outputDirectory, {
+            recursive: true,
         })
-        .catch((err) => {
-            res.json({ success: false, message: "Failed to move files", err });
-        });
+            .then(() => {
+                fs.rm(`./temp/${req.sessionID}/${directory}`, {
+                    recursive: true,
+                })
+                    .then(() => {})
+                    .catch((err) => {
+                        res.json({
+                            success: false,
+                            message: "Failed to move files",
+                            err,
+                        });
+                    });
+            })
+            .catch((err) => {
+                res.json({
+                    success: false,
+                    message: "Failed to move files",
+                    err,
+                });
+            });
     }
     res.json({ success: true, message: "Files moved successfully" });
-
-    
 });
-
-// fileRouter.post("/upload", requireLogin, upload.array("files"), (req, res) => {
-//     try {
-//         const relativePaths = Object.values(req.body.relativePaths); // Extract relative paths as an array
-//         const uploadedFiles = req.files; // Array of uploaded files
-
-//         // Check if files were uploaded
-//         if (!uploadedFiles) {
-//             return res.status(400).json({ message: "No files uploaded" });
-//         }
-
-//         // Loop over each file and save it to the appropriate folder
-//         uploadedFiles.forEach((file, index) => {
-//             const relativePath = relativePaths[index];
-//             const targetDir = path.join(
-//                 __dirname,
-//                 "temp",
-//                 path.dirname(relativePath)
-//             ); // Construct the target directory
-//             const targetFile = path.join(__dirname, "temp", relativePath); // Full path to the file
-
-//             // Create the target directory if it doesn't exist
-//             createDirectory(targetDir);
-
-//             // Save the file to the correct location
-//             fs.writeFileSync(targetFile, file.buffer); // Use file.buffer since we are using memoryStorage in multer
-//         });
-
-//         res.json({
-//             message:
-//                 "Files uploaded and saved to respective directories successfully!",
-//         });
-//     } catch (error) {
-//         res.status(500).json({ message: "File upload failed", error });
-//     }
-// });
 
 export default fileRouter;

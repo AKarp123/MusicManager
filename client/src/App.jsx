@@ -19,7 +19,7 @@ function App() {
     const [error, setError] = useState(null);
 
     const displayError = (errorMessage, variant = "error") => {
-        console.log("HELLO");
+
         setError({ errorMessage, variant });
     };
 

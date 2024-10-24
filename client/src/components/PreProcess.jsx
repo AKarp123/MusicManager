@@ -8,7 +8,7 @@ import {
     Typography,
     Divider,
     IconButton,
-    Collapse
+    Collapse,
 } from "@mui/material";
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
@@ -47,30 +47,40 @@ const PreProcess = ({ options, setView }) => {
     useEffect(() => {
         setLoading(true);
         fetchFolderInfo()
-        .then(() => {
-            setLoading(false);
-        });
+            .then(() => {
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error(err);
+            });
     }, []);
 
     const fetchFolderInfo = async () => {
         console.log("Fetching folder info...");
-        
-        
+
         try {
             const info = await Promise.all(
                 options.folders.map(async (folder) => {
                     const encodedFolder = encodeURIComponent(folder);
-                    const res = await axios.get(`/api/getFolderInfo?folder=${encodedFolder}`);
+                    const res = await axios.get(
+                        `/api/getFolderInfo?folder=${encodedFolder}`
+                    );
+                    if (!res.data.success) {
+                        setError(res.data.message);
+                        return {
+                            folder,
+                            error: true,
+                        };
+                    }
                     return res.data.data;
                 })
             );
-            
-            console.log(info); // Logs resolved info
+            console.log(info);
             setFolderInfo(info); // Sets the resolved folder info
         } catch (error) {
             console.error("Error fetching folder info:", error);
-        } 
-    }
+        }
+    };
 
     const handleCheck = (e) => {
         // console.log(localOptions)
@@ -116,9 +126,24 @@ const PreProcess = ({ options, setView }) => {
                         </ListItem>
                     ))}
                 {!loading &&
-                    folderInfo.map((info, i) => (
-                        <FolderInfo folder={info} key={i} handleFolderSelect={handleFolderSelect} selectedFolders={selectedFolders}/>
-                    ))}
+                    folderInfo.map((info, i) =>
+                        info.error ? (
+                            <ListItem key={i}>
+                                <ListItemText primary={info.folder} />
+                                <Checkbox
+                                    checked={selectedFolders.includes(info.folder)}
+                                    onChange={() => handleFolderSelect(info.folder)}
+                                />
+                            </ListItem>
+                        ) : (
+                            <FolderInfo
+                                folder={info}
+                                key={i}
+                                handleFolderSelect={handleFolderSelect}
+                                selectedFolders={selectedFolders}
+                            />
+                        )
+                    )}
             </List>
 
             <Divider sx={{ margin: "10px 0" }} />

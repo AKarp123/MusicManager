@@ -50,11 +50,13 @@ const Login = () => {
                     history.replace("/")
                 }
                 else {
+        
                     setError(res.data.message, "error");
                 }
             })
             .catch((err) => {
                 console.log(err);
+                setError(res.data.message, "error");
             });
     };
 
