@@ -23,6 +23,7 @@ const FileExplorer = ({ setFilePath, setView, setOptions, options }) => {
         directoryPopup: false,
         selectPopup: false,
         folders: options.folders,
+        loading: true,
     });
 
     const setError = useContext(ErrorContext);
@@ -53,6 +54,7 @@ const FileExplorer = ({ setFilePath, setView, setOptions, options }) => {
 
     useEffect(() => {
         fetchDirectories();
+        dispatch({ type: "SET_LOADING", payload: false });
     }, []);
 
     useEffect(() => {
@@ -100,7 +102,7 @@ const FileExplorer = ({ setFilePath, setView, setOptions, options }) => {
                     });
                     dispatch({ type: "SET_FOLDERS", payload: folders });
 
-                    if(folders.length === 0) {
+                    if (folders.length === 0) {
                         setOptions({
                             replayGain: true,
                             convertToMp3: false,
@@ -197,27 +199,29 @@ const FileExplorer = ({ setFilePath, setView, setOptions, options }) => {
                     overflowY: "auto",
                 }}
             >
-                {state.directoryList.map((directory) => (
-                    <ListItem key={directory}>
-                        <ListItemButton
-                            onClick={() =>
-                                dispatch({
-                                    type: "SET_CURRENT_DIRECTORY",
-                                    payload:
-                                        state.currentDirectory +
-                                        "/" +
-                                        directory,
-                                })
-                            }
-                        >
-                            <ListItemIcon>
-                                <FolderIcon />
-                            </ListItemIcon>
+                {state.loading && <ListItemText primary="Loading..." />}
+                {!state.loading &&
+                    state.directoryList.map((directory) => (
+                        <ListItem key={directory}>
+                            <ListItemButton
+                                onClick={() =>
+                                    dispatch({
+                                        type: "SET_CURRENT_DIRECTORY",
+                                        payload:
+                                            state.currentDirectory +
+                                            "/" +
+                                            directory,
+                                    })
+                                }
+                            >
+                                <ListItemIcon>
+                                    <FolderIcon />
+                                </ListItemIcon>
 
-                            <ListItemText primary={directory} />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
+                                <ListItemText primary={directory} />
+                            </ListItemButton>
+                        </ListItem>
+                    ))}
             </List>
         </>
     );
