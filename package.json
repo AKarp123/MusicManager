@@ -10,7 +10,9 @@
     "install": "cd client && npm install --force && cd ../server && npm install",
     "build": "cd client && npm run build",
     "start": "node server/app.js"
-
+  },
+  "prettier": {
+    "tabWidth": 4
   },
   "keywords": [],
   "author": "",

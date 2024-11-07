@@ -21,7 +21,7 @@ fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
         let userDirectory = path.join(
             os.homedir(),
             config.mediaFilePath,
-            directory ? directory : ""
+            directory ? directory : "",
         ); //media server path + subdirectory
         fs.readdir(userDirectory, { withFileTypes: true })
             .then((files) => {
@@ -68,7 +68,7 @@ fileRouter.post("/createDirectory", requireLogin, async (req, res) => {
     const userDirectory = path.join(
         os.homedir(),
         config.mediaFilePath,
-        directoryPath
+        directoryPath,
     );
 
     fs.mkdir(path.join(userDirectory, directoryName), { recursive: true })
@@ -105,14 +105,14 @@ fileRouter.post(
             // console.log("Uploaded directory name:", directoryName);
 
             const filePaths = req.files.map(
-                (file) => `./temp/${req.sessionID}/${file.filename}`
+                (file) => `./temp/${req.sessionID}/${file.filename}`,
             );
             res.json({ success: true, filePaths });
         } catch (err) {
             res.json({ success: false, message: "Failed to upload file" });
         }
         // res.json({ success: true, message: "Folder uploaded" });
-    }
+    },
 );
 
 fileRouter.post("/process", requireLogin, async (req, res) => {
@@ -137,10 +137,10 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                 //     }
                 // );
                 const allFiles = await recursiveReadDir(
-                    `./temp/${req.sessionID}/${folder}`
+                    `./temp/${req.sessionID}/${folder}`,
                 );
                 const flacFiles = allFiles.filter((file) =>
-                    file.endsWith(".flac")
+                    file.endsWith(".flac"),
                 );
 
                 // const flacFiles = allFiles.filter(
@@ -180,9 +180,11 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                 // console.log("file is already 16bit")
 
                                 resolve(data);
-                            }
+                            },
                         );
                     });
+
+                    console.log(probe);
                     if (probe.streams[0].sample_fmt === "s16") {
                         i++;
                         continue;
@@ -229,7 +231,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                 // );
 
                 const allFiles = await recursiveReadDir(
-                    `./temp/${req.sessionID}/${folder}`
+                    `./temp/${req.sessionID}/${folder}`,
                 );
                 const audioFiles = (
                     await Promise.all(
@@ -243,9 +245,9 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                                     return reject("error"); // Reject on error
                                                 }
                                                 resolve(data);
-                                            }
+                                            },
                                         );
-                                    }
+                                    },
                                 );
                                 if (
                                     data.streams[0].codec_type === "audio" &&
@@ -258,7 +260,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                             } catch (err) {
                                 return null;
                             }
-                        })
+                        }),
                     )
                 ).filter((file) => file !== null); // Filter out null values
 
@@ -278,7 +280,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                             }
                             const outputPath = file.replace(
                                 file.split(".")[file.split(".").length - 1],
-                                ".mp3"
+                                ".mp3",
                             );
                             console.log(inputPath, outputPath);
                             await new Promise((resolve, reject) => {
@@ -309,7 +311,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                         reject();
                                     });
                             });
-                        })
+                        }),
                     );
                 }
             }
@@ -334,7 +336,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                         success: true,
                         message: "Files Processed successfully!",
                     });
-                }
+                },
             );
         }
     } catch (err) {
@@ -390,7 +392,7 @@ fileRouter.get("/getFolderInfo", requireLogin, async (req, res) => {
         }
 
         const files = await recursiveReadDir(
-            `./temp/${req.sessionID}/${folder}`
+            `./temp/${req.sessionID}/${folder}`,
         );
 
         const audioFiles = [];
@@ -415,7 +417,7 @@ fileRouter.get("/getFolderInfo", requireLogin, async (req, res) => {
                         avgBitrate += data.format.bit_rate;
                     }
                 } catch (err) {}
-            })
+            }),
         );
 
         const duration =
@@ -476,7 +478,7 @@ fileRouter.post("/moveToDirectory", requireLogin, async (req, res) => {
             os.homedir(),
             config.mediaFilePath,
             directoryPath,
-            directory
+            directory,
         );
         fs.cp(`./temp/${req.sessionID}/${directory}`, outputDirectory, {
             recursive: true,
