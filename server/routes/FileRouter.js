@@ -410,8 +410,8 @@ fileRouter.get("/getFolderInfo", requireLogin, async (req, res) => {
                             resolve(data);
                         });
                     });
-
                     if (data.streams[0].codec_type === "audio") {
+                       
                         audioFiles.push(file);
                         totDuration += data.format.duration;
                         avgBitrate += data.format.bit_rate;
@@ -439,11 +439,11 @@ fileRouter.get("/getFolderInfo", requireLogin, async (req, res) => {
         const freq = (probe.streams[0].sample_rate / 1000).toFixed(1) + " kHz";
         const bitsPerSample = probe.streams[0].bits_per_raw_sample + " bits";
         const type = probe.streams[0].codec_name;
-
+        
         res.json({
             success: true,
             data: {
-                albumArtist: probe.format.tags.album_artist,
+                albumArtist: (probe.format.tags?.album_artist ?? probe.streams[0].tags?.album_artist) ?? "Unknown", //handle edge case for .ogg / .oga files
                 folderName: folder,
                 size,
                 duration,
