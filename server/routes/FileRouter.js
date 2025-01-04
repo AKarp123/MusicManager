@@ -66,7 +66,7 @@ fileRouter.delete('/clearTempFolder', requireLogin, async (req, res) => {
     .then((files) => {
         files.forEach(async (file) => {
             if(file.isDirectory()){
-                await fs.rm(`./temp/${file.name}`, {recursive: true});
+                await fs.rmdir(`./temp/${folder.name}`, {recursive: true});
             }
         });
         res.json({success: true, message: "Temp folder cleared"});
