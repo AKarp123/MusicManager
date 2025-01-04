@@ -61,6 +61,23 @@ fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
         });
 });
 
+fileRouter.delete('/clearTempFolder', requireLogin, async (req, res) => {
+    fs.readdir('./temp', {withFileTypes: true})
+    .then((files) => {
+        files.forEach(async (file) => {
+            if(file.isDirectory()){
+                await fs.rm(`./temp/${file.name}`, {recursive: true});
+            }
+        });
+        res.json({success: true, message: "Temp folder cleared"});
+    })
+    .catch((err) => {
+        res.json({success: false, message: "Failed to clear temp folder", error: err});
+    })
+    
+
+});
+
 fileRouter.post("/createDirectory", requireLogin, async (req, res) => {
     const { directoryName, directoryPath } = req.body;
 

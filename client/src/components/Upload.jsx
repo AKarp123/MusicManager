@@ -10,20 +10,26 @@ import FilePondPluginFileMetadata from "filepond-plugin-file-metadata";
 // Register the plugins
 registerPlugin(FilePondPluginFileValidateType, FilePondPluginFileMetadata);
 
-
 const Upload = ({ setView, options, setOptions }) => {
     const [files, setFiles] = useState([]);
     const setError = useContext(ErrorContext);
-    
 
+    const clearTempFolder = async () => {
+        axios.delete("/api/clearTempFolder").then((res) => {
+            if (res.data.success) {
+                setError("Temp folder cleared", "success");
+            } else {
+                setError("Failed to clear temp folder", "error");
+            }
+        });
+    };
     const handleUpdateFiles = (fileItems) => {
         const files = fileItems.map((fileItem, i) => {
             if (fileItem.file) {
                 // console.log(fileItem.file.webkitRelativePath );
                 return {
                     file: fileItem.file,
-                    relativePath:
-                        fileItem.relativePath,
+                    relativePath: fileItem.relativePath,
                 };
             }
         });
@@ -75,13 +81,13 @@ const Upload = ({ setView, options, setOptions }) => {
     ) => {
         const formData = new FormData();
 
-        
         //check if file is a blob
-        
-        
-        const relativePath = file._relativePath.split("/").slice(0, -1).join("/") || file.webkitRelativePath.split("/").slice(0, -1).join("/");
-        console.log(file)
-    
+
+        const relativePath =
+            file._relativePath.split("/").slice(0, -1).join("/") ||
+            file.webkitRelativePath.split("/").slice(0, -1).join("/");
+        console.log(file);
+
         formData.set("relativePaths", relativePath);
         formData.append(fieldName, file, file.name);
 
@@ -107,13 +113,14 @@ const Upload = ({ setView, options, setOptions }) => {
                 }),
             })
             .then((res) => {
-                
                 if (res.data.success) {
                     load(res.data.message);
-                    const topFolder = relativePath.split("/")[0] || relativePath.split("/")[1]; //ignore subfolders treat a folder as top
+                    const topFolder =
+                        relativePath.split("/")[0] ||
+                        relativePath.split("/")[1]; //ignore subfolders treat a folder as top
                     let folderList = options.folders;
                     if (folderList.indexOf(topFolder) === -1) {
-                        folderList.push(topFolder)
+                        folderList.push(topFolder);
                         setOptions({
                             ...options,
                             folders: folderList,
@@ -135,7 +142,6 @@ const Upload = ({ setView, options, setOptions }) => {
                 }}
                 elevation={16}
             >
-               
                 <FilePond
                     files={files.map((file) => file.file)}
                     onupdatefiles={handleUpdateFiles}
@@ -165,9 +171,8 @@ const Upload = ({ setView, options, setOptions }) => {
                         variant="contained"
                         color="primary"
                         onClick={() => {
-
-                            if(files.length === 0) {
-                                setError("No Files uploaded!")
+                            if (files.length === 0) {
+                                setError("No Files uploaded!");
                                 return;
                             }
                             setView(1);
@@ -177,6 +182,18 @@ const Upload = ({ setView, options, setOptions }) => {
                         }}
                     >
                         Next
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={clearTempFolder}
+                        sx={{
+                            maxWidth: "30%",
+                            marginLeft: "1rem",
+                            textWrap: "noWrap"
+                        }}
+                    >
+                        Clear Temp Folder
                     </Button>
                 </Box>
             </Paper>
