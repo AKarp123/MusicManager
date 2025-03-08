@@ -139,7 +139,7 @@ fileRouter.get("/watchfolder", requireLogin, async (req, res) => {
 
     try {
         const entries = await fs.readdir(userDirectory, { withFileTypes: true });
-        const folderExists = entries.some(entry => entry.isDirectory());
+        const newFolderFound = entries.some(entry => entry.isDirectory());
         res.json({ success: true, newFolderFound });
     } catch (err) {
         res.json({
