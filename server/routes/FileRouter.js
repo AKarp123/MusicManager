@@ -292,17 +292,6 @@ fileRouter.post(
                 .map((entry) => entry.name)
         );
         
-
-
-        
-        
-        
-
-        
-
-        
-
-        
         try {
             const directory = await unzipper.Open.file(zipPath);
             await directory.extract({ path: extractPath });
@@ -337,6 +326,7 @@ fileRouter.post(
             const extractedFolderName = [...newFolders].filter(
                 (folder) => !existingFolders.has(folder)
             )[0];
+            // console.log(extractedFolderName);
             res.json({
                 success: true,
                 folder: extractedFolderName,
@@ -618,8 +608,7 @@ fileRouter.get("/status", requireLogin, async (req, res) => {
 });
 
 fileRouter.get("/getFolderInfo", requireLogin, async (req, res) => {
-    const folder = Buffer.from(req.query.folder, 'latin1').toString('utf8');
-    // console.log(folder)
+    const folder = req.query.folder;
 
     try {
         let { size } = await getFolderSize(`./temp/${req.sessionID}/${folder}`);
