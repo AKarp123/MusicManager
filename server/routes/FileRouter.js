@@ -112,42 +112,42 @@ fileRouter.get("/watchfolder", requireLogin, async (req, res) => {
         res.json({ success: false, message: "Watch folder not set" });
         return;
     }
-    // try {
-    //     const entries = await fs.readdir(userDirectory, { withFileTypes: true });
-    //     let newFolderFound = false;
-
-    //     for (const entry of entries) {
-    //         if (entry.isDirectory()) {
-    //             const fullPath = path.join(userDirectory, entry.name);
-    //             const stats = await fs.stat(fullPath);
-    //             if (stats.birthtime > lastChecked) {
-    //                 newFolderFound = true;
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     res.json({ success: true, newFolderFound });
-    // } catch (err) {
-    //     res.json({
-    //         success: false,
-    //         message: "Failed to check folders",
-    //         error: err,
-    //     });
-    // }
-
-
     try {
         const entries = await fs.readdir(userDirectory, { withFileTypes: true });
-        const newFolderFound = entries.some(entry => entry.isDirectory());
+        let newFolderFound = false;
+
+        for (const entry of entries) {
+            if (entry.isDirectory()) {
+                const fullPath = path.join(userDirectory, entry.name);
+                const stats = await fs.stat(fullPath);
+                if (stats.mtime > lastChecked) {
+                    newFolderFound = true;
+                    break;
+                }
+            }
+        }
+
         res.json({ success: true, newFolderFound });
     } catch (err) {
         res.json({
             success: false,
-            message: "Failed to check watch folder",
+            message: "Failed to check folders",
             error: err,
         });
     }
+
+
+    // try {
+    //     const entries = await fs.readdir(userDirectory, { withFileTypes: true });
+    //     const newFolderFound = entries.some(entry => entry.isDirectory());
+    //     res.json({ success: true, newFolderFound });
+    // } catch (err) {
+    //     res.json({
+    //         success: false,
+    //         message: "Failed to check watch folder",
+    //         error: err,
+    //     });
+    // }
 });
 
 fileRouter.get("/watchfolder/copy", requireLogin, async (req, res) => {
@@ -155,59 +155,59 @@ fileRouter.get("/watchfolder/copy", requireLogin, async (req, res) => {
     const config = await ConfigModel.findOne({});
     const watchDirectory = path.join(os.homedir(), config.watchFolderPath);
 
-    // const lastChecked = new Date(config.watchFolderLastChecked);
-    // try {
-    //     const entries = await fs.readdir(watchDirectory, { withFileTypes: true });
-    //     const newFolders = [];
-    //     for (const entry of entries) {
-    //         if (entry.isDirectory()) {
-    //             const fullPath = path.join(watchDirectory, entry.name);
-    //             const stats = await fs.stat(fullPath);
-    //             if (stats.birthtime > lastChecked) {
-    //                 newFolders.push(entry.name);
-    //             }
-    //         }
-    //     }
-
-    //     const tempSessionDir = path.join("temp", req.sessionID);
-    //     await fs.mkdir(tempSessionDir, { recursive: true });
-
-    //     for (const folder of newFolders) {
-    //         const sourcePath = path.join(watchDirectory, folder);
-    //         await fs.cp(sourcePath, `./temp/${req.sessionID}/${folder}`, { recursive: true });
-    //     }
-
-    //     config.watchFolderLastChecked = new Date();
-    //     await config.save();
-    //     res.json({ success: true, copiedFolders: newFolders });
-    // } catch (err) {
-    //     res.json({
-    //         success: false,
-    //         message: "Failed to copy new folders",
-    //         error: err,
-    //     });
-    // }
-
-    try  {
+    const lastChecked = new Date(config.watchFolderLastChecked);
+    try {
         const entries = await fs.readdir(watchDirectory, { withFileTypes: true });
-        const newFolders = entries.filter(entry => entry.isDirectory()).map(entry => entry.name);
+        const newFolders = [];
+        for (const entry of entries) {
+            if (entry.isDirectory()) {
+                const fullPath = path.join(watchDirectory, entry.name);
+                const stats = await fs.stat(fullPath);
+                if (stats.mtime > lastChecked) {
+                    newFolders.push(entry.name);
+                }
+            }
+        }
+
         const tempSessionDir = path.join("temp", req.sessionID);
         await fs.mkdir(tempSessionDir, { recursive: true });
+
         for (const folder of newFolders) {
             const sourcePath = path.join(watchDirectory, folder);
             await fs.cp(sourcePath, `./temp/${req.sessionID}/${folder}`, { recursive: true });
         }
+
         config.watchFolderLastChecked = new Date();
         await config.save();
         res.json({ success: true, copiedFolders: newFolders });
-    }
-    catch (err) {
+    } catch (err) {
         res.json({
             success: false,
             message: "Failed to copy new folders",
             error: err,
         });
     }
+
+    // try  {
+    //     const entries = await fs.readdir(watchDirectory, { withFileTypes: true });
+    //     const newFolders = entries.filter(entry => entry.isDirectory()).map(entry => entry.name);
+    //     const tempSessionDir = path.join("temp", req.sessionID);
+    //     await fs.mkdir(tempSessionDir, { recursive: true });
+    //     for (const folder of newFolders) {
+    //         const sourcePath = path.join(watchDirectory, folder);
+    //         await fs.cp(sourcePath, `./temp/${req.sessionID}/${folder}`, { recursive: true });
+    //     }
+    //     config.watchFolderLastChecked = new Date();
+    //     await config.save();
+    //     res.json({ success: true, copiedFolders: newFolders });
+    // }
+    // catch (err) {
+    //     res.json({
+    //         success: false,
+    //         message: "Failed to copy new folders",
+    //         error: err,
+    //     });
+    // }
 
     
 });
