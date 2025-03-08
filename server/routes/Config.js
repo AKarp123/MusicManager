@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import ConfigModel from '../Models/ConfigModel.js';
 
 const configRouter = Router();
 
