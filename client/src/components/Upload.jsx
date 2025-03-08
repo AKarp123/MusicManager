@@ -151,7 +151,15 @@ const Upload = ({ setView, options, setOptions }) => {
         }
 
         //check if the file is a zip file
-        if (files[0].type !== "application/zip") {
+
+        const acceptedTypes = [
+            "application/zip",
+            "application/x-zip-compressed",
+            "application/x-zip",
+            "application/vnd.rar",
+            "application/x-7z-compressed",
+        ]
+        if (!acceptedTypes.includes(files[0].type)) {
             setError("Please upload a zip file", "error");
             return;
         }

@@ -273,11 +273,13 @@ fileRouter.post(
     requireLogin,
     uploadZip.single("file"),
     async (req, res) => {
+
+        const accepedTypes = ["application/zip", "application/x-zip-compressed", "application/x-zip", "application/vnd.rar", "application/x-7z-compressed"];
         if (!req.file) {
             res.json({ success: false, message: "No file uploaded" });
             return;
         }
-        if (req.file.mimetype !== "application/zip") {
+        if (!accepedTypes.includes(req.file.mimetype)) {
             res.json({ success: false, message: "File is not a zip file" });
             return;
         }
