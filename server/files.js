@@ -28,7 +28,18 @@ const destination = multer.diskStorage({
     }
 })
 
+const zipDestination = multer.diskStorage({
+    destination: (req, file, cb) => {
+        fs.mkdir(`./temp/${req.sessionID}`, { recursive: true });
+        cb(null, `./temp/${req.sessionID}`);
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    }
+})
+
 const upload = multer({ storage: destination });
+const uploadZip = multer({ storage: zipDestination });
 
 
-export { upload }
+export { upload, uploadZip }

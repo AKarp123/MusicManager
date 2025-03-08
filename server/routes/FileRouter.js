@@ -4,13 +4,14 @@ import ConfigModel from "../Models/ConfigModel.js";
 import fs from "node:fs/promises";
 import path from "path";
 import os from "os";
-import { upload } from "../files.js";
+import { upload, uploadZip } from "../files.js";
 import Ffmpeg from "fluent-ffmpeg";
 import { exec } from "child_process";
 import recursiveReadDir from "recursive-readdir";
 import getFolderSize from "get-folder-size";
 const fileRouter = Router();
 const status = {};
+import unzipper from "unzipper";
 
 fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
     const config = await ConfigModel.findOne({});
@@ -105,15 +106,16 @@ fileRouter.get("/watchfolder", requireLogin, async (req, res) => {
     const config = await ConfigModel.findOne({});
     const userDirectory = path.join(os.homedir(), config.watchFolderPath);
 
-    const lastChecked = new Date(config.watchFolderLastChecked);   
+    const lastChecked = new Date(config.watchFolderLastChecked);
 
-
-    if(config.watchFolderPath === ""){  
+    if (config.watchFolderPath === "") {
         res.json({ success: false, message: "Watch folder not set" });
         return;
     }
     try {
-        const entries = await fs.readdir(userDirectory, { withFileTypes: true });
+        const entries = await fs.readdir(userDirectory, {
+            withFileTypes: true,
+        });
         let newFolderFound = false;
 
         for (const entry of entries) {
@@ -136,7 +138,6 @@ fileRouter.get("/watchfolder", requireLogin, async (req, res) => {
         });
     }
 
-
     // try {
     //     const entries = await fs.readdir(userDirectory, { withFileTypes: true });
     //     const newFolderFound = entries.some(entry => entry.isDirectory());
@@ -151,13 +152,14 @@ fileRouter.get("/watchfolder", requireLogin, async (req, res) => {
 });
 
 fileRouter.get("/watchfolder/copy", requireLogin, async (req, res) => {
-
     const config = await ConfigModel.findOne({});
     const watchDirectory = path.join(os.homedir(), config.watchFolderPath);
 
     const lastChecked = new Date(config.watchFolderLastChecked);
     try {
-        const entries = await fs.readdir(watchDirectory, { withFileTypes: true });
+        const entries = await fs.readdir(watchDirectory, {
+            withFileTypes: true,
+        });
         const newFolders = [];
         for (const entry of entries) {
             if (entry.isDirectory()) {
@@ -174,7 +176,9 @@ fileRouter.get("/watchfolder/copy", requireLogin, async (req, res) => {
 
         for (const folder of newFolders) {
             const sourcePath = path.join(watchDirectory, folder);
-            await fs.cp(sourcePath, `./temp/${req.sessionID}/${folder}`, { recursive: true });
+            await fs.cp(sourcePath, `./temp/${req.sessionID}/${folder}`, {
+                recursive: true,
+            });
         }
 
         config.watchFolderLastChecked = new Date();
@@ -208,10 +212,7 @@ fileRouter.get("/watchfolder/copy", requireLogin, async (req, res) => {
     //         error: err,
     //     });
     // }
-
-    
 });
-    
 
 fileRouter.post("/createDirectory", requireLogin, async (req, res) => {
     const { directoryName, directoryPath } = req.body;
@@ -264,6 +265,66 @@ fileRouter.post(
             res.json({ success: false, message: "Failed to upload file" });
         }
         // res.json({ success: true, message: "Folder uploaded" });
+    }
+);
+
+fileRouter.post(
+    "/upload/zip",
+    requireLogin,
+    uploadZip.single("file"),
+    async (req, res) => {
+        if (!req.file) {
+            res.json({ success: false, message: "No file uploaded" });
+            return;
+        }
+        if (req.file.mimetype !== "application/zip") {
+            res.json({ success: false, message: "File is not a zip file" });
+            return;
+        }
+        const tempSessionDir = path.join("temp", req.sessionID);
+        const zipPath = path.join(
+            tempSessionDir,
+            req.file.originalname
+        );
+        const extractedFolderName = Buffer.from(
+            req.file.originalname.replace(/\.zip$/i, ""),
+            "latin1"
+        ).toString("utf8");
+
+        const extractPath = `./temp/${req.sessionID}`;
+        try {
+            const directory = await unzipper.Open.file(zipPath);
+            await directory.extract({ path: extractPath });
+            await fs.rm(zipPath);
+            fs.stat(`${extractPath}/__MACOSX`)
+                .then(() => {
+                    return fs.rm(
+                        path.join(extractPath, "__MACOSX"),
+                        { recursive: true }
+                    );
+                })
+                .catch((err) => {
+                    if (err.code === "ENOENT") {
+                        console.log("No __MACOSX directory found");
+                    } else {
+                        console.error(
+                            "Error checking/removing __MACOSX directory:",
+                            err
+                        );
+                    }
+                });
+
+            res.json({
+                success: true,
+                folder: extractedFolderName,
+            });
+        } catch (err) {
+            res.json({
+                success: false,
+                message: "Failed to extract zip file",
+                error: err,
+            });
+        }
     }
 );
 
@@ -430,8 +491,9 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                 i++;
                                 return;
                             }
+                            console.log(file.split("."))
                             const outputPath = file.replace(
-                                file.split(".")[file.split(".").length - 1],
+                                "." + file.split(".")[file.split(".").length - 1],
                                 ".mp3"
                             );
                             console.log(inputPath, outputPath);
@@ -500,6 +562,8 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
         });
     }
 });
+
+
 
 fileRouter.get("/status", requireLogin, async (req, res) => {
     res.setHeader("Content-Type", "text/event-stream");
