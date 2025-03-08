@@ -1,7 +1,7 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { FilePond, FileStatus, registerPlugin } from "react-filepond";
 import "filepond/dist/filepond.min.css";
-import { Button, Paper, Stack, Box } from "@mui/material";
+import { Button, Paper, Stack, Box, Dialog, DialogContent, DialogTitle, DialogActions } from "@mui/material";
 import axios from "axios";
 import ErrorContext from "../ErrorContext";
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
@@ -13,6 +13,30 @@ registerPlugin(FilePondPluginFileValidateType, FilePondPluginFileMetadata);
 const Upload = ({ setView, options, setOptions }) => {
     const [files, setFiles] = useState([]);
     const setError = useContext(ErrorContext);
+    const [watchPopup, setWatchPopup] = useState(false);
+
+    useEffect(() => {   
+        axios.get("/api/watchfolder").then((res) => {
+            if (res.data.success) {
+                setWatchPopup(true);
+            }
+
+        })
+    }, []);
+
+    const handleWatchPopup = () => {
+        setWatchPopup(false);
+        setError("Moving Watch Folders", "info");
+        axios.get("/api/watchfolder/copy").then((res) => {
+            if(res.data.success) {
+                setError("Watch Folders Moved", "success");
+                options.folders = options.folders.concat(res.data.copiedFolders); // Add watch folders to options
+            }
+            else {
+                setError("Failed to move folders", "error");
+            }
+        })
+    }
 
     const clearTempFolder = async () => {
         axios.delete("/api/clearTempFolder").then((res) => {
@@ -38,37 +62,6 @@ const Upload = ({ setView, options, setOptions }) => {
         // Retrieve the directory name from the first file
     };
 
-    const handleUpload = async () => {
-        const formData = new FormData();
-
-        if (files.length === 0) {
-            return;
-        }
-
-        // Append each file along with its relative path to the FormData
-        files.forEach(({ file, relativePath }, index) => {
-            formData.set("relativePaths", relativePath);
-            if (relativePath !== formData.get("relativePaths")) {
-                formData.append("relativePaths", relativePath);
-            }
-            formData.append("files", file); // Append the file itself
-
-            // Append the relative path
-        });
-
-        // Send the request to the server
-        console.log(formData);
-
-        axios
-            .post("/api/upload", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            })
-            .then((res) => {
-                console.log(res.data);
-            });
-    };
 
     const handleFileUpload = (
         fieldName,
@@ -171,7 +164,7 @@ const Upload = ({ setView, options, setOptions }) => {
                         variant="contained"
                         color="primary"
                         onClick={() => {
-                            if (files.length === 0) {
+                            if (files.length === 0 && options.folders.length === 0) {
                                 setError("No Files uploaded!");
                                 return;
                             }
@@ -196,6 +189,25 @@ const Upload = ({ setView, options, setOptions }) => {
                         Clear Temp Folder
                     </Button>
                 </Box>
+                {watchPopup && (
+                    <Dialog open={watchPopup} onClose={() => setWatchPopup(false)}>
+                        <DialogTitle>Music Folders Detected</DialogTitle>
+                        <DialogContent>
+                            
+                                New Folders were detected in the watch directory. Would you like to process them?
+                            
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => {
+                                // Add logic to move watch folders over here
+                                handleWatchPopup();
+                            }}>
+                                Yes
+                            </Button>
+                            <Button onClick={() => setWatchPopup(false)}>No</Button>
+                        </DialogActions>
+                    </Dialog>
+                )}
             </Paper>
         </>
     );

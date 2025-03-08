@@ -21,7 +21,7 @@ fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
         let userDirectory = path.join(
             os.homedir(),
             config.mediaFilePath,
-            directory ? directory : "",
+            directory ? directory : ""
         ); //media server path + subdirectory
         fs.readdir(userDirectory, { withFileTypes: true })
             .then((files) => {
@@ -61,22 +61,121 @@ fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
         });
 });
 
-fileRouter.delete('/clearTempFolder', requireLogin, async (req, res) => {
-    fs.readdir('./temp', {withFileTypes: true})
-    .then((files) => {
-        files.forEach(async (file) => {
-            if(file.isDirectory()){
-                await fs.rmdir(`./temp/${file.name}`, {recursive: true});
-            }
-        });
-        res.json({success: true, message: "Temp folder cleared"});
-    })
-    .catch((err) => {
-        res.json({success: false, message: "Failed to clear temp folder", error: err});
-    })
-    
+fileRouter.get("/directories", requireLogin, async (req, res) => {
+    const { directory } = req.query;
+    let userDirectory = path.join(os.homedir(), directory ? directory : "");
 
+    fs.readdir(userDirectory, { withFileTypes: true })
+        .then((files) => {
+            const directories = files
+                .filter((file) => file.isDirectory())
+                .map((directory) => directory.name);
+
+            res.json({ success: true, directories: directories });
+        })
+        .catch((err) => {
+            res.json({
+                success: false,
+                message: "Failed to read directory",
+                error: err,
+            });
+        });
 });
+
+fileRouter.delete("/clearTempFolder", requireLogin, async (req, res) => {
+    fs.readdir("./temp", { withFileTypes: true })
+        .then((files) => {
+            files.forEach(async (file) => {
+                if (file.isDirectory()) {
+                    await fs.rmdir(`./temp/${file.name}`, { recursive: true });
+                }
+            });
+            res.json({ success: true, message: "Temp folder cleared" });
+        })
+        .catch((err) => {
+            res.json({
+                success: false,
+                message: "Failed to clear temp folder",
+                error: err,
+            });
+        });
+});
+
+fileRouter.get("/watchfolder", requireLogin, async (req, res) => {
+    const config = await ConfigModel.findOne({});
+    const userDirectory = path.join(os.homedir(), config.watchFolderPath);
+
+    const lastChecked = new Date(config.watchFolderLastChecked);   
+
+
+    if(config.watchFolderPath === ""){  
+        res.json({ success: false, message: "Watch folder not set" });
+        return;
+    }
+    try {
+        const entries = await fs.readdir(userDirectory, { withFileTypes: true });
+        let newFolderFound = false;
+
+        for (const entry of entries) {
+            if (entry.isDirectory()) {
+                const fullPath = path.join(userDirectory, entry.name);
+                const stats = await fs.stat(fullPath);
+                if (stats.birthtime > lastChecked) {
+                    newFolderFound = true;
+                    break;
+                }
+            }
+        }
+
+        res.json({ success: true, newFolderFound });
+    } catch (err) {
+        res.json({
+            success: false,
+            message: "Failed to check folders",
+            error: err,
+        });
+    }
+});
+
+fileRouter.get("/watchfolder/copy", requireLogin, async (req, res) => {
+
+    const config = await ConfigModel.findOne({});
+    const watchDirectory = path.join(os.homedir(), config.watchFolderPath);
+
+    const lastChecked = new Date(config.watchFolderLastChecked);
+    try {
+        const entries = await fs.readdir(watchDirectory, { withFileTypes: true });
+        const newFolders = [];
+        for (const entry of entries) {
+            if (entry.isDirectory()) {
+                const fullPath = path.join(watchDirectory, entry.name);
+                const stats = await fs.stat(fullPath);
+                if (stats.birthtime > lastChecked) {
+                    newFolders.push(entry.name);
+                }
+            }
+        }
+
+        const tempSessionDir = path.join("temp", req.sessionID);
+        await fs.mkdir(tempSessionDir, { recursive: true });
+
+        for (const folder of newFolders) {
+            const sourcePath = path.join(watchDirectory, folder);
+            await fs.cp(sourcePath, `./temp/${req.sessionID}/${folder}`, { recursive: true });
+        }
+
+        config.watchFolderLastChecked = new Date();
+        await config.save();
+        res.json({ success: true, copiedFolders: newFolders });
+    } catch (err) {
+        res.json({
+            success: false,
+            message: "Failed to copy new folders",
+            error: err,
+        });
+    }
+});
+    
 
 fileRouter.post("/createDirectory", requireLogin, async (req, res) => {
     const { directoryName, directoryPath } = req.body;
@@ -85,7 +184,7 @@ fileRouter.post("/createDirectory", requireLogin, async (req, res) => {
     const userDirectory = path.join(
         os.homedir(),
         config.mediaFilePath,
-        directoryPath,
+        directoryPath
     );
 
     fs.mkdir(path.join(userDirectory, directoryName), { recursive: true })
@@ -122,14 +221,14 @@ fileRouter.post(
             // console.log("Uploaded directory name:", directoryName);
 
             const filePaths = req.files.map(
-                (file) => `./temp/${req.sessionID}/${file.filename}`,
+                (file) => `./temp/${req.sessionID}/${file.filename}`
             );
             res.json({ success: true, filePaths });
         } catch (err) {
             res.json({ success: false, message: "Failed to upload file" });
         }
         // res.json({ success: true, message: "Folder uploaded" });
-    },
+    }
 );
 
 fileRouter.post("/process", requireLogin, async (req, res) => {
@@ -154,10 +253,10 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                 //     }
                 // );
                 const allFiles = await recursiveReadDir(
-                    `./temp/${req.sessionID}/${folder}`,
+                    `./temp/${req.sessionID}/${folder}`
                 );
                 const flacFiles = allFiles.filter((file) =>
-                    file.endsWith(".flac"),
+                    file.endsWith(".flac")
                 );
 
                 // const flacFiles = allFiles.filter(
@@ -197,7 +296,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                 // console.log("file is already 16bit")
 
                                 resolve(data);
-                            },
+                            }
                         );
                     });
 
@@ -248,7 +347,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                 // );
 
                 const allFiles = await recursiveReadDir(
-                    `./temp/${req.sessionID}/${folder}`,
+                    `./temp/${req.sessionID}/${folder}`
                 );
                 const audioFiles = (
                     await Promise.all(
@@ -262,9 +361,9 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                                     return reject("error"); // Reject on error
                                                 }
                                                 resolve(data);
-                                            },
+                                            }
                                         );
-                                    },
+                                    }
                                 );
                                 if (
                                     data.streams[0].codec_type === "audio" &&
@@ -277,7 +376,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                             } catch (err) {
                                 return null;
                             }
-                        }),
+                        })
                     )
                 ).filter((file) => file !== null); // Filter out null values
 
@@ -297,7 +396,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                             }
                             const outputPath = file.replace(
                                 file.split(".")[file.split(".").length - 1],
-                                ".mp3",
+                                ".mp3"
                             );
                             console.log(inputPath, outputPath);
                             await new Promise((resolve, reject) => {
@@ -328,7 +427,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                                         reject();
                                     });
                             });
-                        }),
+                        })
                     );
                 }
             }
@@ -353,7 +452,7 @@ fileRouter.post("/process", requireLogin, async (req, res) => {
                         success: true,
                         message: "Files Processed successfully!",
                     });
-                },
+                }
             );
         }
     } catch (err) {
@@ -409,7 +508,7 @@ fileRouter.get("/getFolderInfo", requireLogin, async (req, res) => {
         }
 
         const files = await recursiveReadDir(
-            `./temp/${req.sessionID}/${folder}`,
+            `./temp/${req.sessionID}/${folder}`
         );
 
         const audioFiles = [];
@@ -428,13 +527,12 @@ fileRouter.get("/getFolderInfo", requireLogin, async (req, res) => {
                         });
                     });
                     if (data.streams[0].codec_type === "audio") {
-                       
                         audioFiles.push(file);
                         totDuration += data.format.duration;
                         avgBitrate += data.format.bit_rate;
                     }
                 } catch (err) {}
-            }),
+            })
         );
 
         const duration =
@@ -456,11 +554,14 @@ fileRouter.get("/getFolderInfo", requireLogin, async (req, res) => {
         const freq = (probe.streams[0].sample_rate / 1000).toFixed(1) + " kHz";
         const bitsPerSample = probe.streams[0].bits_per_raw_sample + " bits";
         const type = probe.streams[0].codec_name;
-        
+
         res.json({
             success: true,
             data: {
-                albumArtist: (probe.format.tags?.album_artist ?? probe.streams[0].tags?.album_artist) ?? "Unknown", //handle edge case for .ogg / .oga files
+                albumArtist:
+                    probe.format.tags?.album_artist ??
+                    probe.streams[0].tags?.album_artist ??
+                    "Unknown", //handle edge case for .ogg / .oga files
                 folderName: folder,
                 size,
                 duration,
@@ -495,7 +596,7 @@ fileRouter.post("/moveToDirectory", requireLogin, async (req, res) => {
             os.homedir(),
             config.mediaFilePath,
             directoryPath,
-            directory,
+            directory
         );
         fs.cp(`./temp/${req.sessionID}/${directory}`, outputDirectory, {
             recursive: true,

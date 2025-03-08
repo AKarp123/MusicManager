@@ -8,6 +8,7 @@ import Register from "./components/Register";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { CssBaseline, Alert, Snackbar } from "@mui/material";
 import ErrorContext from "./ErrorContext";
+import Settings from "./components/Settings";
 
 const darkTheme = createTheme({
     palette: {
@@ -31,6 +32,7 @@ function App() {
                     <Switch>
                         <Route exact path="/login" component={Login} />
                         <Route exact path="/register" component={Register} />
+                        <Route exact path="/settings" component={Settings} />
                         <AuthRoute path="/" component={Home} />
                     </Switch>
                 </UserProvider>

@@ -4,8 +4,9 @@ import FileExplorer from "./FileViewer/FileExplorer";
 import Onboard from "./Onboard";
 import UserContext from "../UserProvider";
 import Upload from "./Upload";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import PreProcess from "./PreProcess";
+import Navbar from "./Navbar";
 
 const Home = () => {
     const { user, config } = useContext(UserContext);
@@ -18,13 +19,13 @@ const Home = () => {
    
     });
 
+    
+
 
     if (config.mediaFilePath === "") { // initial music setup
         return (
             <PageBackdrop>
-                <Typography variant="h3" sx={{ textAlign: "center" }}>
-                    Music Manager
-                </Typography>
+                <Navbar />
                 <Onboard />
             </PageBackdrop>
         );
@@ -33,10 +34,8 @@ const Home = () => {
 
     return (
         <PageBackdrop>
-            <Typography variant="h3" sx={{ textAlign: "center" }}>
-                Music Manager
-            </Typography>
-            <Divider sx={{ margin: "10px 0" }} />
+            <Navbar />
+            <Divider sx={{ marginBottom: "10px" }} />
             <Container>
                 {
                     view === 0 ? (

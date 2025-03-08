@@ -10,13 +10,19 @@ const configSchema = new Schema({
         type: String,
         default: "",
     },
+    watchFolderPath: {
+        type: String,
+        default: "",
+    },
+    watchFolderLastChecked: {
+        type: Date,
+        default: new Date(0),
+    },
     adminAccountCreated: {
         type: Boolean,
         default: false,
-    }
-
-    }
-);
+    },
+});
 
 const ConfigModel = mongoose.model("Config", configSchema);
 
