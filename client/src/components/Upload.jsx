@@ -18,7 +18,7 @@ const Upload = ({ setView, options, setOptions }) => {
     useEffect(() => {   
         axios.get("/api/watchfolder").then((res) => {
             if (res.data.success) {
-                setWatchPopup(true);
+                setWatchPopup(res.data.newFolderFound);
             }
 
         })
