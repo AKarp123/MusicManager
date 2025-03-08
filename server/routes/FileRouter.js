@@ -286,41 +286,35 @@ fileRouter.post(
             tempSessionDir,
             req.file.originalname
         );
+        const extractPath = `./temp/${req.sessionID}`;
         const existingFolders = new Set(
             (await fs.readdir(extractPath, { withFileTypes: true }))
-                .filter((entry) => entry.isDirectory())
                 .map((entry) => entry.name)
         );
         
-        // Extract ZIP file
-        await directory.extract({ path: extractPath });
-        await fs.rm(zipPath);
+
+
         
-        // Get a list of folders AFTER extraction
-        const updatedFolders = await fs.readdir(extractPath, { withFileTypes: true });
         
-        // Find the newly extracted folder(s)
-        const newFolders = updatedFolders
-            .filter((entry) => entry.isDirectory() && !existingFolders.has(entry.name))
-            .map((entry) => entry.name);
         
-        let extractedFolderName = newFolders.length > 0 ? newFolders[0] : null;
 
         
 
         
 
-        const extractPath = `./temp/${req.sessionID}`;
+        
         try {
             const directory = await unzipper.Open.file(zipPath);
             await directory.extract({ path: extractPath });
             await fs.rm(zipPath);
+            
             fs.stat(`${extractPath}/__MACOSX`)
-                .then(() => {
-                    return fs.rm(
+                .then(async() => {
+                    fs.rm(
                         path.join(extractPath, "__MACOSX"),
                         { recursive: true }
                     );
+
                 })
                 .catch((err) => {
                     if (err.code === "ENOENT") {
@@ -333,10 +327,22 @@ fileRouter.post(
                     }
                 });
 
+            // Get a list of folders AFTER extraction
+            const newFolders = new Set(
+                (await fs.readdir(extractPath, { withFileTypes: true }))
+                    .filter((entry) => entry.isDirectory())
+                    .map((entry) => entry.name)
+            );
+            // Get the folder that was extracted
+            const extractedFolderName = [...newFolders].filter(
+                (folder) => !existingFolders.has(folder)
+            )[0];
             res.json({
                 success: true,
                 folder: extractedFolderName,
             });
+
+           
         } catch (err) {
             res.json({
                 success: false,
