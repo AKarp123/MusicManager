@@ -286,10 +286,29 @@ fileRouter.post(
             tempSessionDir,
             req.file.originalname
         );
-        const extractedFolderName = Buffer.from(
-            req.file.originalname.replace(/\.zip$/i, ""),
-            "latin1"
-        ).toString("utf8");
+        const existingFolders = new Set(
+            (await fs.readdir(extractPath, { withFileTypes: true }))
+                .filter((entry) => entry.isDirectory())
+                .map((entry) => entry.name)
+        );
+        
+        // Extract ZIP file
+        await directory.extract({ path: extractPath });
+        await fs.rm(zipPath);
+        
+        // Get a list of folders AFTER extraction
+        const updatedFolders = await fs.readdir(extractPath, { withFileTypes: true });
+        
+        // Find the newly extracted folder(s)
+        const newFolders = updatedFolders
+            .filter((entry) => entry.isDirectory() && !existingFolders.has(entry.name))
+            .map((entry) => entry.name);
+        
+        let extractedFolderName = newFolders.length > 0 ? newFolders[0] : null;
+
+        
+
+        
 
         const extractPath = `./temp/${req.sessionID}`;
         try {
@@ -593,7 +612,7 @@ fileRouter.get("/status", requireLogin, async (req, res) => {
 });
 
 fileRouter.get("/getFolderInfo", requireLogin, async (req, res) => {
-    const { folder } = req.query;
+    const folder = Buffer.from(req.query.folder, 'latin1').toString('utf8');
     // console.log(folder)
 
     try {
