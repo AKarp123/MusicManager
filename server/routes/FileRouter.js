@@ -299,25 +299,24 @@ fileRouter.post(
             await directory.extract({ path: extractPath });
             await fs.rm(zipPath);
             
-            fs.stat(`${extractPath}/__MACOSX`)
-                .then(async() => {
-                    fs.rm(
-                        path.join(extractPath, "__MACOSX"),
-                        { recursive: true }
-                    );
-
-                })
-                .catch((err) => {
-                    if (err.code === "ENOENT") {
-                        console.log("No __MACOSX directory found");
-                    } else {
-                        console.error(
-                            "Error checking/removing __MACOSX directory:",
-                            err
-                        );
-                    }
-                });
-
+            const extractedItems = await fs.readdir(extractPath, { withFileTypes: true });
+            const subfolders = extractedItems.filter((item) => item.isDirectory());
+            const hasSingleFolder = subfolders.length === 1;
+            
+            if (!hasSingleFolder) {
+                const zipFolderName = path.basename(zipPath, path.extname(zipPath));
+                const newExtractPath = path.join(
+                    extractPath,
+                    Buffer.from(zipFolderName, "binary").toString("utf8")
+                );
+                await fs.mkdir(newExtractPath, { recursive: true });
+            
+                for (const item of extractedItems) {
+                    const oldPath = path.join(extractPath, item.name);
+                    const newPath = path.join(newExtractPath, item.name);
+                    await fs.rename(oldPath, newPath);
+                }
+            }
             // Get a list of folders AFTER extraction
             const newFolders = new Set(
                 (await fs.readdir(extractPath, { withFileTypes: true }))
@@ -328,7 +327,7 @@ fileRouter.post(
             const extractedFolderName = [...newFolders].filter(
                 (folder) => !existingFolders.has(folder)
             )[0];
-            // console.log(extractedFolderName);
+            console.log(extractedFolderName);
             res.json({
                 success: true,
                 folder: extractedFolderName,
