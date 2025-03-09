@@ -12,6 +12,7 @@ import getFolderSize from "get-folder-size";
 const fileRouter = Router();
 const status = {};
 import unzipper from "unzipper";
+import { randomInt } from "node:crypto";
 
 fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
     const config = await ConfigModel.findOne({});
@@ -288,7 +289,8 @@ fileRouter.post(
             tempSessionDir,
             req.file.originalname
         );
-        const extractPath = `./temp/${req.sessionID}`;
+        const extractPath = `./temp/${req.sessionID}/${randomInt(1000, 9999)}`;
+        await fs.mkdir(extractPath, { recursive: true });
         const existingFolders = new Set(
             (await fs.readdir(extractPath, { withFileTypes: true }))
                 .map((entry) => entry.name)
@@ -300,21 +302,23 @@ fileRouter.post(
             await fs.rm(zipPath);
             
             const extractedItems = await fs.readdir(extractPath, { withFileTypes: true });
-            const subfolders = extractedItems.filter((item) => item.isDirectory());
-            const hasSingleFolder = subfolders.length === 1;
+            const musicCheck = extractedItems.filter((entry) => entry.isFile())
             
-            if (!hasSingleFolder) {
+            
+            if (musicCheck) {
                 const zipFolderName = path.basename(zipPath, path.extname(zipPath));
                 const newExtractPath = path.join(
-                    extractPath,
+                    tempSessionDir,
                     Buffer.from(zipFolderName, "binary").toString("utf8")
                 );
                 await fs.mkdir(newExtractPath, { recursive: true });
             
                 for (const item of extractedItems) {
-                    const oldPath = path.join(extractPath, item.name);
-                    const newPath = path.join(newExtractPath, item.name);
-                    await fs.rename(oldPath, newPath);
+                    if(item.name === "__MACOSX") {
+                        await fs.rm(path.join(extractPath, item.name), { recursive: true });
+                        continue;
+                    }
+                    await fs.rename(path.join(extractPath, item.name), path.join(newExtractPath, item.name));
                 }
             }
             // Get a list of folders AFTER extraction
@@ -327,7 +331,7 @@ fileRouter.post(
             const extractedFolderName = [...newFolders].filter(
                 (folder) => !existingFolders.has(folder)
             )[0];
-            console.log(extractedFolderName);
+            await fs.rm(extractPath, { recursive: true });
             res.json({
                 success: true,
                 folder: extractedFolderName,
