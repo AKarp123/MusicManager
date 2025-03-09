@@ -303,16 +303,18 @@ fileRouter.post(
             
             const extractedItems = await fs.readdir(extractPath, { withFileTypes: true });
             const musicCheck = extractedItems.filter((entry) => entry.isFile())
+            const folderCheck = extractedItems.filter((entry) => entry.isDirectory())
+
             
-            
-            if (musicCheck) {
+            let newFolders = new Set();
+            if (musicCheck.length > 0) { //check if the base unzipped directory has music files, then it means no subfolder with album is created so make one.
                 const zipFolderName = path.basename(zipPath, path.extname(zipPath));
                 const newExtractPath = path.join(
                     tempSessionDir,
                     Buffer.from(zipFolderName, "binary").toString("utf8")
                 );
                 await fs.mkdir(newExtractPath, { recursive: true });
-            
+                newFolders.add(Buffer.from(zipFolderName, "binary").toString("utf8"));
                 for (const item of extractedItems) {
                     if(item.name === "__MACOSX") {
                         await fs.rm(path.join(extractPath, item.name), { recursive: true });
@@ -321,12 +323,35 @@ fileRouter.post(
                     await fs.rename(path.join(extractPath, item.name), path.join(newExtractPath, item.name));
                 }
             }
+            else if(folderCheck.length > 1) {  //if subfolders related to disc etc disc1 disc2 make a new folder with the name of the zip file
+
+                const zipFolderName = path.basename(zipPath, path.extname(zipPath));
+                const newExtractPath = path.join(
+                    tempSessionDir,
+                    Buffer.from(zipFolderName, "binary").toString("utf8")
+                );
+                await fs.mkdir(newExtractPath, { recursive: true });
+                newFolders.add(Buffer.from(zipFolderName, "binary").toString("utf8"));
+                for (const item of extractedItems) {
+                    if(item.name === "__MACOSX") {
+                        await fs.rm(path.join(extractPath, item.name), { recursive: true });
+                        continue;
+                    }
+                    await fs.rename(path.join(extractPath, item.name), path.join(newExtractPath, item.name));
+                }
+            }
+            else {
+                for (const item of extractedItems) {
+                    if(item.name === "__MACOSX") {
+                        await fs.rm(path.join(extractPath, item.name), { recursive: true });
+                        continue;
+                    }
+                    await fs.rename(path.join(extractPath, item.name), path.join(tempSessionDir, item.name));
+                    newFolders.add(item.name);
+                }
+            }
             // Get a list of folders AFTER extraction
-            const newFolders = new Set(
-                (await fs.readdir(extractPath, { withFileTypes: true }))
-                    .filter((entry) => entry.isDirectory())
-                    .map((entry) => entry.name)
-            );
+            
             // Get the folder that was extracted
             const extractedFolderName = [...newFolders].filter(
                 (folder) => !existingFolders.has(folder)
