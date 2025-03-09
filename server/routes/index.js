@@ -8,6 +8,7 @@ import fs from "node:fs/promises";
 import os from "os";
 import path from "path";
 import configRouter from "./Config.js";
+import UserRouter from "./UserRoutes.js";
 
 const router = Router();
 
@@ -24,6 +25,10 @@ router.post("/login", passport.authenticate("local"), async (req, res) => {
     } else {
         res.json({ success: false, message: "Failed to log in" });
     }
+});
+
+router.post("/logout", (req, res) => {
+    req.logout((err) => console.log(err));
 });
 
 router.post("/register", async (req, res) => {
@@ -88,18 +93,6 @@ router.post("/register", async (req, res) => {
     );
 });
 
-//logout passport
-router.get("/logout", requireLogin, (req, res) => {
-    req.logout((err) => {
-        if (err) {
-            return res.json({ success: false, message: "Failed to log out" });
-        }
-    });
-    res.json({
-        success: true,
-        message: "You have been successfully logged out",
-    });
-});
 
 router.get("/getUserData", async (req, res) => {
     let config = await ConfigModel.findOne({});
@@ -137,5 +130,6 @@ router.get("/getUserData", async (req, res) => {
 
 router.use("/", fileRouter);
 router.use("/config", requireLogin, configRouter);
+router.use("/user", requireLogin, UserRouter);
 
 export default router;

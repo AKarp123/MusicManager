@@ -32,7 +32,7 @@ function App() {
                     <Switch>
                         <Route exact path="/login" component={Login} />
                         <Route exact path="/register" component={Register} />
-                        <Route exact path="/settings" component={Settings} />
+                        <AuthRoute exact path="/settings" component={Settings} />
                         <AuthRoute path="/" component={Home} />
                     </Switch>
                 </UserProvider>

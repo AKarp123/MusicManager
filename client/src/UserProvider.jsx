@@ -8,7 +8,7 @@ export const UserProvider = ({ children }) => {
     const [user, setUser] = useState("Loading");
     const [config, setConfig] = useState(null);
     
-
+    
     useEffect(() => {
         axios
             .get("/api/getUserData")

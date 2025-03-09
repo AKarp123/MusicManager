@@ -158,7 +158,7 @@ const Upload = ({ setView, options, setOptions }) => {
             "application/x-zip",
             "application/vnd.rar",
             "application/x-7z-compressed",
-        ]
+        ];
         if (!acceptedTypes.includes(files[0].type)) {
             setError("Please upload a zip file", "error");
             return;

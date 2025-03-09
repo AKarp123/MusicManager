@@ -16,57 +16,54 @@ import axios from "axios";
 import ErrorContext from "../ErrorContext";
 
 const Settings = () => {
-    const { user } = useContext(UserContext);
-    const [config, setConfig] = useState({});
-    const [mediaFilePath, setMediaFilePath] = useState("");
-    const [dirList, setDirList] = useState([]);
-    const [watchFolderPath, setWatchFolderPath] = useState("");
-    const [loading, setLoading] = useState(true);
+    const { config } = useContext(UserContext);
+    const [mediaFilePath, setMediaFilePath] = useState(config.mediaFilePath);
+    const [watchFolderPath, setWatchFolderPath] = useState(config.watchFolderPath);
     const textFieldRef = useRef(null);
     const setError = useContext(ErrorContext);
+    const [password, setPassword] = useState("");
+
     
 
-    useEffect(() => {
-        axios.get("/api/config").then((res) => {
-            setConfig(res.data.config);
-            setMediaFilePath(res.data.config.mediaFilePath);
-            setWatchFolderPath(res.data.config.watchFolderPath);
-            setLoading(false);
-        });
-    }, []);
-    
     const updateMediaFilePath = (e) => {
         e?.preventDefault();
-        axios.patch("/api/config/mediafilepath", { mediaFilePath }).then((res) => {
-            if (res.data.success) {
-                setError("Media File Path Updated", "success");
-            } else {
-                setError("Path Not Found", "error");
-            }
-        });
-    }
+        axios
+            .patch("/api/config/mediafilepath", { mediaFilePath })
+            .then((res) => {
+                if (res.data.success) {
+                    setError("Media File Path Updated", "success");
+                } else {
+                    setError("Path Not Found", "error");
+                }
+            });
+    };
 
     const updateWatchFolderPath = (e) => {
         e?.preventDefault();
-        axios.patch("/api/config/watchfolderpath", { watchFolderPath }).then((res) => {
+        axios
+            .patch("/api/config/watchfolderpath", { watchFolderPath })
+            .then((res) => {
+                if (res.data.success) {
+                    setError("Watch Folder Path Updated", "success");
+                } else {
+                    setError("Path Not Found", "error");
+                }
+            });
+    };
+
+    const updatePassword = (e) => {
+        e.preventDefault();
+        axios.patch("/api/user/password", { password }).then((res) => {
             if (res.data.success) {
-                setError("Watch Folder Path Updated", "success");
-            }
-            else {
-                setError("Path Not Found", "error");
+                setError("Password Updated", "success");
+            } else {
+                setError("Failed to Update Password", "error");
             }
         });
-    }
+        setPassword("");
+    };
 
     
-
-    if (loading) {
-        return (
-            <PageBackdrop>
-                <Typography>Loading...</Typography>
-            </PageBackdrop>
-        );
-    }
     return (
         <PageBackdrop>
             <Navbar />
@@ -95,7 +92,7 @@ const Settings = () => {
                                 height: "56px",
                                 marginRight: "10px",
                             }}
-                            onClick={updateMediaFilePath}
+                            type="submit"
                         >
                             Change Path
                         </Button>
@@ -112,7 +109,6 @@ const Settings = () => {
                                 "& .MuiInputBase-root": { height: "56px" },
                             }}
                             onChange={(e) => setWatchFolderPath(e.target.value)}
-
                             label="Watch Folder"
                         />
                         <Button
@@ -122,9 +118,35 @@ const Settings = () => {
                                 height: "56px",
                                 marginRight: "10px",
                             }}
-                            onClick={updateWatchFolderPath}
+                            type="submit"
                         >
                             Change Path
+                        </Button>
+                    </form>
+                </ListItem>
+                <ListItem sx={{ alignItems: "center" }}>
+                    <form onSubmit={updatePassword}>
+                        <TextField
+                            value={password}
+                            sx={{
+                                marginRight: "10px",
+                                height: "56px",
+                                "& .MuiInputBase-root": { height: "56px" },
+                            }}
+                            onChange={(e) => setPassword(e.target.value)}
+                            type="password"
+                            label="Password"
+                        />
+                        <Button
+                            variant="text"
+                            color="primary"
+                            sx={{
+                                height: "56px",
+                                marginRight: "10px",
+                            }}
+                            type="submit"
+                        >
+                            Change Password
                         </Button>
                     </form>
                 </ListItem>
