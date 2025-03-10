@@ -33,7 +33,6 @@ configRouter.patch("/mediafilepath", async (req, res) => {
 configRouter.patch("/watchfolderpath", async (req, res) => {
     const config = await ConfigModel.findOne({});
     config.watchFolderPath = req.body.watchFolderPath;
-    config.watchFolderLastChecked = new Date(0);
     fs.access(path.join(os.homedir(), config.watchFolderPath))
         .then(() => {
             return config.save();
