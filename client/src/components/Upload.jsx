@@ -53,7 +53,7 @@ const Upload = ({ setView, options, setOptions }) => {
 
     const handleWatchPopup = () => {
         setWatchPopup(false);
-        setError("Moving Watch Folders", "info");
+        setError("Moving Folders", "info", null);
         axios.get("/api/watchfolder/copy").then((res) => {
             if (res.data.success) {
                 setError("Watch Folders Moved", "success");

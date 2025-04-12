@@ -22,7 +22,7 @@ const FileExplorer = ({ setFilePath, setView, setOptions, options }) => {
         currentDirectory: "",
         directoryPopup: false,
         selectPopup: false,
-        folders: options.folders,
+        directories: options.folders,
         loading: true,
     });
 

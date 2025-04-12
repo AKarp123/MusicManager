@@ -19,9 +19,9 @@ const darkTheme = createTheme({
 function App() {
     const [error, setError] = useState(null);
 
-    const displayError = (errorMessage, variant = "error") => {
+    const displayError = (errorMessage, variant = "error", autoHideDuration = 2000) => {
 
-        setError({ errorMessage, variant });
+        setError({ errorMessage, variant, autoHideDuration });
     };
 
     return (
@@ -40,7 +40,7 @@ function App() {
             {error && (
                 <Snackbar
                     open={error !== undefined && error !== null}
-                    autoHideDuration={2000}
+                    autoHideDuration={error.autoHideDuration}
                     onClose={() => setError(null)}
                 >
                     <Alert
