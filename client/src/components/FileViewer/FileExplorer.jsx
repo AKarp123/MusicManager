@@ -28,7 +28,7 @@ const FileExplorer = ({ setFilePath, setView, setOptions, options }) => {
 
     const setError = useContext(ErrorContext);
 
-    const fetchDirectories = (forceRefresh) => {
+    const fetchDirectories = (forceRefresh = false) => {
         if (forceRefresh) {
             axios
                 .get("/api/listDirectories", {
