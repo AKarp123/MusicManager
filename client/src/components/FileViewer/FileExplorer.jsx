@@ -28,28 +28,57 @@ const FileExplorer = ({ setFilePath, setView, setOptions, options }) => {
 
     const setError = useContext(ErrorContext);
 
-    const fetchDirectories = () => {
-        axios
-            .get("/api/listDirectories", {
-                params: { directory: state.currentDirectory },
-            })
-            .then((res) => {
-                if (res.data.success) {
-                    dispatch({
-                        type: "SET_DIRECTORY_LIST",
-                        payload: res.data.directories,
-                    });
-                } else {
-                    setError("Failed to read directory", "error");
-                    dispatch({
-                        type: "SET_CURRENT_DIRECTORY",
-                        payload: state.currentDirectory.slice(
-                            0,
-                            state.currentDirectory.lastIndexOf("/")
-                        ),
-                    });
-                }
-            });
+    const fetchDirectories = (forceRefresh) => {
+        if (forceRefresh) {
+            axios
+                .get("/api/listDirectories", {
+                    params: { directory: state.currentDirectory },
+                    headers: {
+                        "Cache-Control": "no-cache",
+                        Pragma: "no-cache",
+                        Expires: "0",
+                    },
+                })
+                .then((res) => {
+                    if (res.data.success) {
+                        dispatch({
+                            type: "SET_DIRECTORY_LIST",
+                            payload: res.data.directories,
+                        });
+                    } else {
+                        setError("Failed to read directory", "error");
+                        dispatch({
+                            type: "SET_CURRENT_DIRECTORY",
+                            payload: state.currentDirectory.slice(
+                                0,
+                                state.currentDirectory.lastIndexOf("/")
+                            ),
+                        });
+                    }
+                });
+        } else {
+            axios
+                .get("/api/listDirectories", {
+                    params: { directory: state.currentDirectory },
+                })
+                .then((res) => {
+                    if (res.data.success) {
+                        dispatch({
+                            type: "SET_DIRECTORY_LIST",
+                            payload: res.data.directories,
+                        });
+                    } else {
+                        setError("Failed to read directory", "error");
+                        dispatch({
+                            type: "SET_CURRENT_DIRECTORY",
+                            payload: state.currentDirectory.slice(
+                                0,
+                                state.currentDirectory.lastIndexOf("/")
+                            ),
+                        });
+                    }
+                });
+        }
     };
 
     useEffect(() => {
@@ -95,7 +124,7 @@ const FileExplorer = ({ setFilePath, setView, setOptions, options }) => {
                         "success"
                     );
 
-                    fetchDirectories();
+                    fetchDirectories(true);
 
                     const folders = state.folders.filter((folder) => {
                         return !directories.includes(folder);
