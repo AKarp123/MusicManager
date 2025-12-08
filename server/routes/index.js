@@ -7,6 +7,7 @@ import requireLogin from "../requireLogin.js";
 import axios from "axios";
 import configRouter from "./Config.js";
 import UserRouter from "./UserRoutes.js";
+import { setTimeout } from "node:timers/promises"
 
 const router = Router();
 
@@ -142,8 +143,8 @@ router.get("/scan", requireLogin, async (req, res) => {
         p: process.env.ND_PASSWORD,
         v: "1.16.0",
     }
-    console.log(sessionDirectories[req.sessionID].directories)
     console.log(axios.getUri({ url: baseUrl, params: query, paramsSerializer: { indexes: null} }));
+    await setTimeout(7000);
     await axios.get(baseUrl, { params: query, paramsSerializer: { indexes: null} });
     res.json({ success: true });
     delete sessionDirectories[req.sessionID];       
