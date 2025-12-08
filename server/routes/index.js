@@ -127,6 +127,10 @@ router.get("/getUserData", async (req, res) => {
 });
 
 router.get("/scan", requireLogin, async (req, res) => {
+    if(process.env.ND_ENABLE !== "true") {
+        res.json({ success: false, message: "Navidrome integration is disabled" });
+        return;
+    }
     let baseUrl = process.env.ND_BASE_URL+"/rest/startScan";
     let target = [];
     const targets = (Array.from(sessionDirectories[req.sessionID].directories)).map((dir) => `1:${dir}`);
