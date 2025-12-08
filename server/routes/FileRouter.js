@@ -772,10 +772,8 @@ fileRouter.post("/moveToDirectory", requireLogin, async (req, res) => {
             directories: new Set(),
         }
     }
-    for (let dir of directories) {
-        sessionDirectories[req.sessionID].directories.add((directoryPath + "/" + dir).substring(1));
-
-    }
+    
+    sessionDirectories[req.sessionID].directories.add((directoryPath).substring(1));
     sessionDirectories[req.sessionID].lastUpdated = new Date();
     res.json({ success: true, message: "Files moved successfully" });
 });
