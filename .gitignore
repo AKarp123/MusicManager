@@ -2,5 +2,4 @@
 **/node_modules/
 **/build
 **/temp
-
-server/.DS_Store
+.DS_Store
