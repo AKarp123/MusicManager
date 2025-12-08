@@ -144,7 +144,7 @@ router.get("/scan", requireLogin, async (req, res) => {
         v: "1.16.0",
     }
     console.log(axios.getUri({ url: baseUrl, params: query, paramsSerializer: { indexes: null} }));
-    await setTimeout(7000);
+    await setTimeout(20000);
     await axios.get(baseUrl, { params: query, paramsSerializer: { indexes: null} });
     res.json({ success: true });
     delete sessionDirectories[req.sessionID];       
