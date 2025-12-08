@@ -4,13 +4,13 @@ import ConfigModel from "../Models/ConfigModel.js";
 import UserModel from "../Models/UserModel.js";
 import fileRouter from "./FileRouter.js";
 import requireLogin from "../requireLogin.js";
-import fs from "node:fs/promises";
-import os from "os";
-import path from "path";
+import axios from "axios";
 import configRouter from "./Config.js";
 import UserRouter from "./UserRoutes.js";
 
 const router = Router();
+
+export const sessionDirectories = {};
 
 //temp
 router.post("/login", passport.authenticate("local"), async (req, res) => {
@@ -125,6 +125,26 @@ router.get("/getUserData", async (req, res) => {
         });
     }
 });
+
+router.get("/scan", requireLogin, async (req, res) => {
+    let baseUrl = process.env.ND_BASE_URL+"/rest/startScan";
+    let target = [];
+    const targets = (Array.from(sessionDirectories[req.sessionID].directories)).map((dir) => `1:${dir}`);
+
+    const query = {
+        target: targets,
+        c: "MusicManager",
+        u: process.env.ND_USERNAME,
+        p: process.env.ND_PASSWORD,
+        v: "1.16.0",
+    }
+    console.log(sessionDirectories[req.sessionID].directories)
+    console.log(axios.getUri({ url: baseUrl, params: query, paramsSerializer: { indexes: null} }));
+    await axios.get(baseUrl, { params: query, paramsSerializer: { indexes: null} });
+    res.json({ success: true });
+    delete sessionDirectories[req.sessionID];       
+});
+
 
 
 

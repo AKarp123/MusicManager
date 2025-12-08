@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useContext } from "react";
+import { useEffect, useReducer, useContext, useState } from "react";
 import { reducer } from "./reducer";
 import axios from "axios";
 import {
@@ -25,6 +25,7 @@ const FileExplorer = ({ setFilePath, setView, setOptions, options }) => {
         folders: options.folders,
         loading: true,
     });
+    const [initialLoad, setInitialLoad] = useState(true);
 
     const setError = useContext(ErrorContext);
 
@@ -87,6 +88,10 @@ const FileExplorer = ({ setFilePath, setView, setOptions, options }) => {
     }, []);
 
     useEffect(() => {
+        if (initialLoad) {
+            setInitialLoad(false);
+            return;
+        }
         fetchDirectories();
     }, [state.currentDirectory]);
 
@@ -138,6 +143,7 @@ const FileExplorer = ({ setFilePath, setView, setOptions, options }) => {
                             convertHiResFlac: false,
                             folders: [],
                         });
+                        axios.get("/api/scan");
                         setView(0);
                     }
                 } else {

@@ -10,6 +10,7 @@ import UserModel from "./Models/UserModel.js";
 import MongoStore from "connect-mongo";
 import initializeConfig from "./initializeConfig.js";
 import reset from "./reset.js";
+import { sessionDirectories } from "./routes/index.js";
 import ConfigModel from "./Models/ConfigModel.js";
 
 const app = express();
@@ -45,7 +46,6 @@ app.use(
     })
 );
 
-
 //passport configuration
 app.use(passport.initialize());
 app.use(passport.session());
@@ -75,9 +75,19 @@ db.once("open", async () => {
     if (!config) {
         await initializeConfig();
     }
-
-  
 });
 
+const CLEANUP_INTERVAL_MINUTES = 10;
 
-export {db};
+setInterval(() => {
+    const now = Date.now();
+    const maxAge = CLEANUP_INTERVAL_MINUTES * 60 * 1000;
+
+    for (const sessionID in sessionDirectories) {
+        if (now - sessionDirectories[sessionID].lastUpdated > maxAge) {
+            delete sessionDirectories[sessionID];
+        }
+    }
+}, CLEANUP_INTERVAL_MINUTES * 60 * 1000);
+
+export { db };

@@ -13,6 +13,7 @@ const fileRouter = Router();
 const status = {};
 import unzipper from "unzipper";
 import { randomInt } from "node:crypto";
+import { sessionDirectories } from "./index.js";
 
 fileRouter.get("/listDirectories", requireLogin, async (req, res) => {
     const config = await ConfigModel.findOne({});
@@ -627,7 +628,7 @@ fileRouter.get("/status", requireLogin, async (req, res) => {
             status[req.sessionID].message === "Files Processed successfully!"
         ) {
             clearInterval(statusMessage);
-            status[req.sessionID] = null;
+            delete status[req.sessionID];
             res.end();
         }
     }, 100);
@@ -766,6 +767,16 @@ fileRouter.post("/moveToDirectory", requireLogin, async (req, res) => {
                 });
             });
     }
+    if (!sessionDirectories[req.sessionID]) {
+        sessionDirectories[req.sessionID] = {
+            directories: new Set(),
+        }
+    }
+    for (let dir of directories) {
+        sessionDirectories[req.sessionID].directories.add(directoryPath + "/" + dir);
+
+    }
+    sessionDirectories[req.sessionID].lastUpdated = new Date();
     res.json({ success: true, message: "Files moved successfully" });
 });
 
