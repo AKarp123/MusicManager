@@ -1,0 +1,16 @@
+FROM oven/bun:latest
+
+WORKDIR /app
+COPY . .
+
+
+ENV FORCE_COLOR=1
+
+WORKDIR /app
+
+RUN bun install
+
+
+EXPOSE 3000
+
+CMD ["bun", "run", "dev"]
