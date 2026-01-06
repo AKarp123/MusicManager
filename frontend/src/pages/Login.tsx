@@ -1,11 +1,32 @@
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useState, useEffect } from 'react'
+import { useLocation } from 'wouter'
 import { authClient } from '../authClient'
 
 export default function Login() {
+  const [, setLocation] = useLocation()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Check if user is already authenticated and redirect
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const session = await authClient.getSession()
+        if (session?.data?.session) {
+          // User is already logged in, redirect to return path or home
+          const params = new URLSearchParams(window.location.search)
+          const returnPath = params.get('return')
+          setLocation(returnPath || '/')
+        }
+      } catch (error) {
+        // Not authenticated, stay on login page
+      }
+    }
+
+    checkAuth()
+  }, [setLocation])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -19,15 +40,16 @@ export default function Login() {
 
     if (error) {
       setStatus(error.message || 'Unable to sign in.')
-    } else if (data?.user?.username) {
-      setStatus(`Signed in as ${data.user.username}`)
-    } else if (data?.user?.email) {
-      setStatus(`Signed in as ${data.user.email}`)
+      setIsSubmitting(false)
+    } else if (data?.user) {
+      // Successfully signed in, redirect to return path or home
+      const params = new URLSearchParams(window.location.search)
+      const returnPath = params.get('return')
+      setLocation(returnPath || '/')
     } else {
       setStatus('Signed in.')
+      setIsSubmitting(false)
     }
-
-    setIsSubmitting(false)
   }
 
   return (
