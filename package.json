@@ -9,7 +9,9 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "install": "cd client && npm install --force && cd ../server && npm install",
     "build": "cd client && npm run build",
-    "start": "node server/app.js"
+    "start": "node server/app.js",
+    "lint": "cd frontend && bun run lint",
+    "lint:fix": "cd frontend && bun run lint --fix"
   },
   "prettier": {
     "tabWidth": 4
