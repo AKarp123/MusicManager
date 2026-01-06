@@ -1,10 +1,8 @@
 import { createAuthClient } from 'better-auth/client'
 import { usernameClient } from 'better-auth/client/plugins'
 
-const baseURL = import.meta.env.VITE_AUTH_URL || 'http://localhost:3000'
-
 export const authClient = createAuthClient({
-  baseURL,
+  baseURL: '', // Use relative URLs - Vite will proxy to backend
   basePath: '/api/auth',
   plugins: [usernameClient()]
 })
