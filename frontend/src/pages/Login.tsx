@@ -1,4 +1,5 @@
 import { type FormEvent, useState, useEffect } from 'react'
+import * as Form from '@radix-ui/react-form'
 import { useLocation } from 'wouter'
 import { authClient } from '../authClient'
 
@@ -21,7 +22,7 @@ export default function Login() {
 					setLocation(returnPath || '/')
 				}
 			} catch (error) {
-				// Not authenticated, stay on login page
+				console.error(error)
 			}
 		}
 
@@ -53,41 +54,72 @@ export default function Login() {
 	}
 
 	return (
-		<main>
-			<h1>Login</h1>
-			<form onSubmit={handleSubmit}>
-				<div>
-					<label>
-						Username
-						<input
-							type="text"
-							name="username"
-							autoComplete="username"
-							required
-							value={username}
-							onChange={(event) => setUsername(event.target.value)}
-						/>
-					</label>
+		<main className="flex min-h-screen items-center justify-center bg-black px-4 py-10 text-white">
+			<section className="relative w-full max-w-md rounded-2xl border border-white/30 bg-black p-8">
+				<div className="mb-8 space-y-2">
+					<p className="text-xs font-semibold uppercase tracking-[0.22em] text-white">Login</p>
 				</div>
-				<div>
-					<label>
-						Password
-						<input
-							type="password"
-							name="password"
-							autoComplete="current-password"
-							required
-							value={password}
-							onChange={(event) => setPassword(event.target.value)}
-						/>
-					</label>
-				</div>
-				<button type="submit" disabled={isSubmitting}>
-					{isSubmitting ? 'Signing in...' : 'Sign in'}
-				</button>
-			</form>
-			{status ? <p>{status}</p> : null}
+
+				<Form.Root className="space-y-5" onSubmit={handleSubmit}>
+					<Form.Field className="space-y-2" name="username">
+						<div className="flex items-center justify-between">
+							<Form.Label className="text-sm font-medium text-white">Username</Form.Label>
+							<Form.Message className="text-xs text-white/70" match="valueMissing">
+								Required
+							</Form.Message>
+						</div>
+						<Form.Control asChild>
+							<input
+								className="w-full rounded-xl border border-white/25 bg-black px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-white focus:ring-2 focus:ring-white/35"
+								type="text"
+								name="username"
+								autoComplete="username"
+								placeholder="username"
+								required
+								value={username}
+								onChange={(event) => setUsername(event.target.value)}
+							/>
+						</Form.Control>
+					</Form.Field>
+
+					<Form.Field className="space-y-2" name="password">
+						<div className="flex items-center justify-between">
+							<Form.Label className="text-sm font-medium text-white">Password</Form.Label>
+							<Form.Message className="text-xs text-white/70" match="valueMissing">
+								Required
+							</Form.Message>
+						</div>
+						<Form.Control asChild>
+							<input
+								className="w-full rounded-xl border border-white/25 bg-black px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-white focus:ring-2 focus:ring-white/35"
+								type="password"
+								name="password"
+								autoComplete="current-password"
+								placeholder="Enter your password"
+								required
+								value={password}
+								onChange={(event) => setPassword(event.target.value)}
+							/>
+						</Form.Control>
+					</Form.Field>
+
+					<Form.Submit asChild>
+						<button
+							className="inline-flex w-full items-center justify-center rounded-xl border border-white bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50"
+							type="submit"
+							disabled={isSubmitting}
+						>
+							{isSubmitting ? 'Signing in...' : 'Sign in'}
+						</button>
+					</Form.Submit>
+				</Form.Root>
+
+				{status ? (
+					<p className="mt-5 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm text-white/85">
+						{status}
+					</p>
+				) : null}
+			</section>
 		</main>
 	)
 }
-
