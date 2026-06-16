@@ -7,25 +7,25 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 import stylistic from '@stylistic/eslint-plugin'
 
 export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      js.configs.recommended,
-      tseslint.configs.recommended,
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
-    ],
-    plugins: {
-      "@stylistic": stylistic,
-    },
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
-    },
-    rules: {
-      'no-console': ['error', { allow: ['warn', 'error'] }],
-      '@stylistic/indent': ['error', 'tab'],
-    },
-  },
+	globalIgnores(['dist']),
+	{
+		files: ['**/*.{ts,tsx}'],
+		extends: [
+			js.configs.recommended,
+			tseslint.configs.recommended,
+			reactHooks.configs.flat.recommended,
+			reactRefresh.configs.vite
+		],
+		plugins: {
+			'@stylistic': stylistic
+		},
+		languageOptions: {
+			ecmaVersion: 2020,
+			globals: globals.browser
+		},
+		rules: {
+			'no-console': ['error', { allow: ['warn', 'error'] }],
+			'@stylistic/indent': ['error', 'tab']
+		}
+	}
 ])

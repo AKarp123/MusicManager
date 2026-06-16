@@ -1,3 +1,1 @@
-import { sqliteTable } from "drizzle-orm/sqlite-core";
-
-
+import { sqliteTable } from 'drizzle-orm/sqlite-core'

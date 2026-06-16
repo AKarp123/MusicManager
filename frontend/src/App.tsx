@@ -19,7 +19,14 @@ function Home() {
 
 	return (
 		<main>
-			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+			<div
+				style={{
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
+					marginBottom: '20px' 
+				}}
+			>
 				<h1>Home</h1>
 				<button onClick={handleSignOut} style={{ padding: '8px 16px', cursor: 'pointer' }}>
 					Sign Out

@@ -11,10 +11,9 @@
     "build": "cd client && npm run build",
     "start": "node server/app.js",
     "lint": "cd frontend && bun run lint",
-    "lint:fix": "cd frontend && bun run lint --fix"
-  },
-  "prettier": {
-    "tabWidth": 4
+    "lint:fix": "cd frontend && bun run lint --fix",
+    "format": "cd frontend && bun run format && cd ../backend && bun run format",
+    "format:check": "cd frontend && bun run format:check && cd ../backend && bun run format:check"
   },
   "keywords": [],
   "author": "",

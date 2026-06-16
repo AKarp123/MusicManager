@@ -15,7 +15,7 @@ export default function AuthRoute({ children }: AuthRouteProps) {
 			try {
 				const session = await authClient.getSession()
 				setIsAuthenticated(!!session?.data?.session)
-			} catch (error) {
+			} catch {
 				setIsAuthenticated(false)
 			}
 		}
@@ -25,10 +25,7 @@ export default function AuthRoute({ children }: AuthRouteProps) {
 
 	// Show loading state while checking authentication
 	if (isAuthenticated === null) {
-		return (
-			<>
-			</>
-		)
+		return <></>
 	}
 
 	// If not authenticated, redirect to login with return path
@@ -40,4 +37,3 @@ export default function AuthRoute({ children }: AuthRouteProps) {
 	// If authenticated, render children
 	return <>{children}</>
 }
-

@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+coverage
+.DS_Store
+
+frontend/bun.lock
+backend/bun.lock
+backend/drizzle
+backend/src/better-auth_migrations
+backend/musicmanager.db
