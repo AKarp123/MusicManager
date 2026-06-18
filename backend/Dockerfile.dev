@@ -1,5 +1,10 @@
-FROM oven/bun:latest
+FROM oven/bun:alpine
 
+
+
+
+
+RUN apk add ffmpeg rsgain
 WORKDIR /app
 COPY . .
 

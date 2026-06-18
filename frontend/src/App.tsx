@@ -2,6 +2,7 @@ import { Router, Route } from 'wouter'
 import { useLocation } from 'wouter'
 import Login from './pages/Login'
 import AuthRoute from './components/AuthRoute'
+import Navbar from './components/Navbar'
 import { authClient } from './authClient'
 
 // Example protected page - replace with your actual pages
@@ -18,21 +19,12 @@ function Home() {
 	}
 
 	return (
-		<main>
-			<div
-				style={{
-					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'center',
-					marginBottom: '20px' 
-				}}
-			>
-				<h1>Home</h1>
-				<button onClick={handleSignOut} style={{ padding: '8px 16px', cursor: 'pointer' }}>
-					Sign Out
-				</button>
-			</div>
-			<p>This is a protected route</p>
+		<main className="flex min-h-screen flex-col items-center justify-center bg-black text-white">
+			<Navbar onSignOut={handleSignOut} />
+			<section className="flex min-h-[80vh] min-w-[70vw] flex-col justify-between border border-white/25 bg-black p-6">
+				<h1 className="text-3xl font-semibold">Home</h1>
+				<p className="text-white/80">This is a protected route</p>
+			</section>
 		</main>
 	)
 }

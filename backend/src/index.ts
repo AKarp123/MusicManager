@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { auth } from './utils/auth'
 import { createInitialUser } from './init'
+import userRoutes from './routes/user'
 
 const app = new Hono()
 
@@ -25,6 +26,8 @@ app.use(
 app.on(['POST', 'GET'], '/api/auth/*', (c) => {
 	return auth.handler(c.req.raw)
 })
+
+app.route('/api', userRoutes)
 
 export default {
 	fetch: app.fetch,

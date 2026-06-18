@@ -1,8 +1,29 @@
 @import 'tailwindcss';
 
-body {
-	margin: 0;
-	min-height: 100vh;
-	background: #1b1b1b;
-	color: white;
+
+@layer base {
+	body {
+		-webkit-font-smoothing: none;
+		font-smooth: never;
+		
+	}
+
+	
+	
+	html {
+		font-family: "PixelOperator", sans-serif;
+		font-size: 115%;
+	}
 }
+
+
+
+@font-face { 
+    font-family: "PixelOperator";
+    src: url("./fonts/PixelOperator.ttf") format("truetype");
+    font-weight: normal;
+    font-display: block;
+}
+
+
+

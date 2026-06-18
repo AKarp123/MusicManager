@@ -55,7 +55,7 @@ export default function Login() {
 
 	return (
 		<main className="flex min-h-screen items-center justify-center bg-black px-4 py-10 text-white">
-			<section className="relative w-full max-w-md rounded-2xl border border-white/30 bg-black p-8">
+			<section className="relative w-full max-w-md border border-white/30 bg-black p-8">
 				<div className="mb-8 space-y-2">
 					<p className="text-xs font-semibold uppercase tracking-[0.22em] text-white">Login</p>
 				</div>
@@ -70,7 +70,7 @@ export default function Login() {
 						</div>
 						<Form.Control asChild>
 							<input
-								className="w-full rounded-xl border border-white/25 bg-black px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-white focus:ring-2 focus:ring-white/35"
+								className="w-full border border-white/25 bg-black px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-white focus:ring-2 focus:ring-white/35"
 								type="text"
 								name="username"
 								autoComplete="username"
@@ -91,7 +91,7 @@ export default function Login() {
 						</div>
 						<Form.Control asChild>
 							<input
-								className="w-full rounded-xl border border-white/25 bg-black px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-white focus:ring-2 focus:ring-white/35"
+								className="w-full border border-white/25 bg-black px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-white focus:ring-2 focus:ring-white/35"
 								type="password"
 								name="password"
 								autoComplete="current-password"
@@ -105,7 +105,7 @@ export default function Login() {
 
 					<Form.Submit asChild>
 						<button
-							className="inline-flex w-full items-center justify-center rounded-xl border border-white bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50"
+							className="inline-flex w-full items-center justify-center border border-white bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
 							type="submit"
 							disabled={isSubmitting}
 						>
@@ -115,7 +115,7 @@ export default function Login() {
 				</Form.Root>
 
 				{status ? (
-					<p className="mt-5 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm text-white/85">
+					<p className="mt-5 border border-white/30 bg-white/10 px-3 py-2 text-sm text-white/85">
 						{status}
 					</p>
 				) : null}

@@ -19,6 +19,7 @@ services:
       - "3000:3000"
     volumes:
       - ./backend:/app
+      - ${HOME}/Music:/app/library
 
 volumes:
   node_modules_frontend: {}
