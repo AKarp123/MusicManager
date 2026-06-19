@@ -1,7 +1,7 @@
 import { type FormEvent, useState, useEffect } from 'react'
 import * as Form from '@radix-ui/react-form'
 import { useLocation } from 'wouter'
-import { authClient } from '../authClient'
+import { authClient } from '@/authClient'
 
 export default function Login() {
 	const [, setLocation] = useLocation()

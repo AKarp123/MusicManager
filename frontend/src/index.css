@@ -2,17 +2,27 @@
 
 
 @layer base {
+	html,
 	body {
+		min-height: 100%;
+		background: #000;
+		color: #fff;
 		-webkit-font-smoothing: none;
 		font-smooth: never;
-		
 	}
 
-	
-	
 	html {
 		font-family: "PixelOperator", sans-serif;
 		font-size: 115%;
+	}
+
+	body {
+		margin: 0;
+	}
+
+	#root {
+		min-height: 100vh;
+		background: #000;
 	}
 }
 
@@ -24,6 +34,5 @@
     font-weight: normal;
     font-display: block;
 }
-
 
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation, Redirect } from 'wouter'
-import { authClient } from '../authClient'
+import { authClient } from '@/authClient'
 
 interface AuthRouteProps {
 	children: React.ReactNode
