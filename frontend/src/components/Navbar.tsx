@@ -5,18 +5,14 @@ type NavbarProps = {
 }
 
 const routes = [{
-	name: 'Home',
+	name: 'Upload',
 	path: '/'
 
-}, {
-	name: 'Profile',
-	path: '/'
 }]
 
 export default function Navbar({ onSignOut }: NavbarProps) {
 	return (
-		<nav className="flex w-[70vw] items-center justify-between border border-b-0 border-white/25 bg-black px-6 text-white">
-			<p className="text-lg font-semibold">Music Manager</p>
+		<nav className="flex w-full items-center justify-between border border-b-0 border-white/25 bg-black px-2 text-white">
 			<div className="flex space-x-4">
 				{routes.map((route) => (
 					<Link
