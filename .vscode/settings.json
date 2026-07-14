@@ -1,0 +1,7 @@
+{
+	"eslint.workingDirectories": ["./frontend", "./backend"],
+	"eslint.validate": ["typescript", "typescriptreact"],
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit"
+	}
+}

@@ -10,8 +10,8 @@
     "install": "cd client && npm install --force && cd ../server && npm install",
     "build": "cd client && npm run build",
     "start": "node server/app.js",
-    "lint": "cd frontend && bun run lint",
-    "lint:fix": "cd frontend && bun run lint --fix",
+    "lint": "cd frontend && bun run lint && cd ../backend && bun run lint",
+    "lint:fix": "cd frontend && bun run lint --fix && cd ../backend && bun run lint:fix",
     "format": "cd frontend && bun run format && cd ../backend && bun run format",
     "format:check": "cd frontend && bun run format:check && cd ../backend && bun run format:check"
   },

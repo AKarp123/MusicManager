@@ -1,31 +1,33 @@
 import js from '@eslint/js'
 import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import stylistic from '@stylistic/eslint-plugin'
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 
 export default defineConfig([
-	globalIgnores(['dist']),
+	globalIgnores([
+		'node_modules',
+		'dist',
+		'build',
+		'coverage',
+		'drizzle',
+		'src/better-auth_migrations'
+	]),
 	{
-		files: ['**/*.{ts,tsx}'],
-		extends: [
-			js.configs.recommended,
-			tseslint.configs.recommended,
-			reactHooks.configs.flat.recommended,
-			reactRefresh.configs.vite
-		],
+		files: ['**/*.ts'],
+		extends: [js.configs.recommended, tseslint.configs.recommended],
 		plugins: {
 			'@stylistic': stylistic
 		},
 		languageOptions: {
 			ecmaVersion: 2020,
-			globals: globals.browser
+			globals: {
+				...globals.node,
+				Bun: 'readonly'
+			}
 		},
 		rules: {
-			'no-console': ['error', { allow: ['warn', 'error'] }],
 			'@stylistic/indent': ['error', 'tab']
 		}
 	},
