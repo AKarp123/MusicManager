@@ -1,14 +1,15 @@
-import { Link } from "wouter"
+import { Link } from 'wouter'
 
 type NavbarProps = {
 	onSignOut: () => void
 }
 
-const routes = [{
-	name: 'Upload',
-	path: '/'
-
-}]
+const routes = [
+	{
+		name: 'Upload',
+		path: '/'
+	}
+]
 
 export default function Navbar({ onSignOut }: NavbarProps) {
 	return (
@@ -18,7 +19,6 @@ export default function Navbar({ onSignOut }: NavbarProps) {
 					<Link
 						key={route.path}
 						to={route.path}
-						
 						className="cursor-pointer px-3 py-1 m-1 text-sm font-medium transition duration-300 hover:bg-gray-500 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
 					>
 						{route.name}

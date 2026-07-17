@@ -31,7 +31,7 @@ const FolderDropdown = ({ folder, files }: FolderDropdownProps) => {
 				<ul className="mt-4 space-y-3 border-t border-white/10 pt-4">
 					{files.map((file) => (
 						<li key={file.id} className="break-all text-sm text-white/75">
-							{file.relativePath}
+							{file.relativePath.split('/').slice(1).join('/')}
 						</li>
 					))}
 				</ul>

@@ -6,4 +6,3 @@ export type QueuedUpload = {
 	relativePath: string
 	source: UploadMode
 }
-

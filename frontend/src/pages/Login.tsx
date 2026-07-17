@@ -57,14 +57,21 @@ export default function Login() {
 		<main className="flex min-h-screen items-center justify-center bg-black px-4 py-10 text-white">
 			<section className="relative w-full max-w-md border border-white/30 bg-black p-8">
 				<div className="mb-8 space-y-2">
-					<p className="text-xs font-semibold uppercase tracking-[0.22em] text-white">Login</p>
+					<p className="text-xs font-semibold uppercase tracking-[0.22em] text-white">
+						Login
+					</p>
 				</div>
 
 				<Form.Root className="space-y-5" onSubmit={handleSubmit}>
 					<Form.Field className="space-y-2" name="username">
 						<div className="flex items-center justify-between">
-							<Form.Label className="text-sm font-medium text-white">Username</Form.Label>
-							<Form.Message className="text-xs text-white/70" match="valueMissing">
+							<Form.Label className="text-sm font-medium text-white">
+								Username
+							</Form.Label>
+							<Form.Message
+								className="text-xs text-white/70"
+								match="valueMissing"
+							>
 								Required
 							</Form.Message>
 						</div>
@@ -84,8 +91,13 @@ export default function Login() {
 
 					<Form.Field className="space-y-2" name="password">
 						<div className="flex items-center justify-between">
-							<Form.Label className="text-sm font-medium text-white">Password</Form.Label>
-							<Form.Message className="text-xs text-white/70" match="valueMissing">
+							<Form.Label className="text-sm font-medium text-white">
+								Password
+							</Form.Label>
+							<Form.Message
+								className="text-xs text-white/70"
+								match="valueMissing"
+							>
 								Required
 							</Form.Message>
 						</div>

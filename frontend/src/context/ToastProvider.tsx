@@ -12,7 +12,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 	const [toast, setToast] = useState<ToastState | null>(null)
 
 	const hideToast = useCallback(() => {
-		setToast((currentToast) => (currentToast ? { ...currentToast, open: false } : null))
+		setToast((currentToast) =>
+			currentToast ? { ...currentToast, open: false } : null
+		)
 	}, [])
 
 	const showToast = useCallback((nextToast: ToastOptions) => {

@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 
-
 @layer base {
 	html,
 	body {
@@ -12,7 +11,7 @@
 	}
 
 	html {
-		font-family: "PixelOperator", sans-serif;
+		font-family: 'PixelOperator', sans-serif;
 		font-size: 115%;
 	}
 
@@ -26,13 +25,9 @@
 	}
 }
 
-
-
-@font-face { 
-    font-family: "PixelOperator";
-    src: url("./fonts/PixelOperator.ttf") format("truetype");
-    font-weight: normal;
-    font-display: block;
+@font-face {
+	font-family: 'PixelOperator';
+	src: url('./fonts/PixelOperator.ttf') format('truetype');
+	font-weight: normal;
+	font-display: block;
 }
-
-

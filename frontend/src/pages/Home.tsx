@@ -1,10 +1,17 @@
-import { type ChangeEvent, type DragEvent, useMemo, useRef, useState } from 'react'
+import {
+	type ChangeEvent,
+	type DragEvent,
+	useMemo,
+	useRef,
+	useState
+} from 'react'
 import { type QueuedUpload, type UploadMode } from '../types/upload'
 import FolderDropdown from '@/components/FolderDropdown'
 import { useToast } from '@/context/ToastContext'
 
 const archiveExtensions = ['.zip', '.rar', '.7z']
-const archiveAccept = '.zip,.rar,application/zip,application/vnd.rar,application/x-rar-compressed'
+const archiveAccept =
+	'.zip,.rar,application/zip,application/vnd.rar,application/x-rar-compressed'
 
 const formatBytes = (bytes: number) => {
 	if (bytes === 0) {
@@ -12,7 +19,10 @@ const formatBytes = (bytes: number) => {
 	}
 
 	const units = ['B', 'KB', 'MB', 'GB']
-	const unitIndex = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1)
+	const unitIndex = Math.min(
+		Math.floor(Math.log(bytes) / Math.log(1024)),
+		units.length - 1
+	)
 	const value = bytes / 1024 ** unitIndex
 
 	return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
@@ -50,7 +60,10 @@ export function Home() {
 		if (validFiles.length === 0) {
 			showToast({
 				title: 'No files added',
-				message: source === 'archive' ? 'Choose a .zip or .rar archive.' : 'Choose a folder with files.',
+				message:
+					source === 'archive'
+						? 'Choose a .zip or .rar archive.'
+						: 'Choose a folder with files.',
 				type: 'warning'
 			})
 			return
@@ -59,7 +72,9 @@ export function Home() {
 		const nextUploads = validFiles.map((file) => createUploadItem(file, source))
 
 		setQueuedUploads((currentUploads) => {
-			const uploadsById = new Map(currentUploads.map((upload) => [upload.id, upload]))
+			const uploadsById = new Map(
+				currentUploads.map((upload) => [upload.id, upload])
+			)
 
 			for (const upload of nextUploads) {
 				uploadsById.set(upload.id, upload)
@@ -81,8 +96,10 @@ export function Home() {
 	}
 
 	const getFolders = useMemo(() => {
-		const nonArchive = queuedUploads.filter((upload) => upload.source === 'folder')
-		const folders : Record<string, QueuedUpload[]> = {}
+		const nonArchive = queuedUploads.filter(
+			(upload) => upload.source === 'folder'
+		)
+		const folders: Record<string, QueuedUpload[]> = {}
 
 		for (const upload of nonArchive) {
 			const folder = upload.relativePath.split('/')[0]
@@ -120,7 +137,9 @@ export function Home() {
 		<>
 			<div className="flex flex-col gap-5 border-b border-white/20 pb-5 md:flex-row md:items-end md:justify-between">
 				<div>
-					<p className="text-sm font-semibold uppercase text-white/60">Upload</p>
+					<p className="text-sm font-semibold uppercase text-white/60">
+						Upload
+					</p>
 					<h1 className="mt-1 text-3xl font-semibold">Add Music</h1>
 				</div>
 				<div className="grid w-full grid-cols-2 border border-white/25 md:w-72">
@@ -173,10 +192,11 @@ export function Home() {
 					<div className="max-w-xl space-y-5">
 						<div className="space-y-2">
 							<h2 className="text-2xl font-semibold">
-								{activeMode === 'archive' ? 'Upload .zip or .rar archives' : 'Upload a full folder'}
+								{activeMode === 'archive'
+									? 'Upload .zip or .rar archives'
+									: 'Upload a full folder'}
 							</h2>
-							<p className="text-sm leading-6 text-white/70">
-							</p>
+							<p className="text-sm leading-6 text-white/70"></p>
 						</div>
 
 						<button
@@ -207,23 +227,32 @@ export function Home() {
 							</button>
 						</div>
 						<p className="mt-2 text-sm text-white/60">
-							{queuedUploads.length} file{queuedUploads.length === 1 ? '' : 's'} / {formatBytes(totalSize)}
+							{queuedUploads.length} file{queuedUploads.length === 1 ? '' : 's'}{' '}
+							/ {formatBytes(totalSize)}
 						</p>
 					</div>
 
 					<div className="min-h-0 flex-1 overflow-y-auto">
 						{queuedUploads.length > 0 ? (
 							<ul className="divide-y divide-white/10">
-								{queuedUploads.filter((upload) => upload.source === 'archive').map((upload) => (
-									<li className="space-y-1 p-4" key={upload.id}>
-										<p className="break-all text-sm text-white">{upload.relativePath}</p>
-										<p className="text-xs uppercase text-white/50">
-											{upload.source} / {formatBytes(upload.file.size)}
-										</p>
-									</li>
-								))}
+								{queuedUploads
+									.filter((upload) => upload.source === 'archive')
+									.map((upload) => (
+										<li className="space-y-1 p-4" key={upload.id}>
+											<p className="break-all text-sm text-white">
+												{upload.relativePath}
+											</p>
+											<p className="text-xs uppercase text-white/50">
+												{upload.source} / {formatBytes(upload.file.size)}
+											</p>
+										</li>
+									))}
 								{Object.entries(getFolders).map(([folder, uploads]) => (
-									<FolderDropdown key={folder} folder={folder} files={uploads} />
+									<FolderDropdown
+										key={folder}
+										folder={folder}
+										files={uploads}
+									/>
 								))}
 							</ul>
 						) : (

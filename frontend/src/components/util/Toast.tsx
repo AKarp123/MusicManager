@@ -15,13 +15,24 @@ const iconDisplay = ({ type }: { type: ToastType }) => {
 			return <CheckIcon size={35} color="" strokeWidth={0.25} radius={1} />
 		}
 		case 'error': {
-			return <CircleAlertIcon size={35} color="" strokeWidth={0.25} radius={1} />
+			return (
+				<CircleAlertIcon size={35} color="" strokeWidth={0.25} radius={1} />
+			)
 		}
 		case 'warning': {
-			return <CircleAlertIcon size={35} color="fef493" strokeWidth={0.25} radius={1} />
+			return (
+				<CircleAlertIcon
+					size={35}
+					color="fef493"
+					strokeWidth={0.25}
+					radius={1}
+				/>
+			)
 		}
 		case 'info': {
-			return <InfoIcon size={35} color="#fefefe" strokeWidth={0.25} radius={1} />
+			return (
+				<InfoIcon size={35} color="#fefefe" strokeWidth={0.25} radius={1} />
+			)
 		}
 	}
 }
@@ -45,13 +56,13 @@ const DisplayToast = ({
 				onClose()
 			}
 		}}
-		className="ToastRoot inline-flex items-center gap-3 rounded-md border border-white/25 bg-black/85 p-3 text-white backdrop-blur-md"
+		className="ToastRoot inline-flex items-center gap-3 rounded-md border border-white/25 bg-black/85 p-3 text-white backdrop-blur-md min-w-50"
 	>
 		{iconDisplay({ type })}
 		<div className="min-w-0 flex-1">
 			<Toast.Title className="text-sm font-semibold">{title}</Toast.Title>
 			{message ? (
-				<Toast.Description className="mt-1 break-words text-xs text-white/70">
+				<Toast.Description className="mt-1 wrap-break-word text-xs text-white/70">
 					{message}
 				</Toast.Description>
 			) : null}

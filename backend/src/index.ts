@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { auth } from './utils/auth'
 import { createInitialUser } from './init'
-import userRoutes from './routes/user'
+import userRoutes from './routes/userRoutes'
 
 const app = new Hono()
 
