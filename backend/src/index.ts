@@ -3,8 +3,14 @@ import { cors } from 'hono/cors'
 import { auth } from './utils/auth'
 import { createInitialUser } from './init'
 import userRoutes from './routes/userRoutes'
+import uploadRoutes from './routes/uploadRoutes'
 
 const app = new Hono()
+const configuredMaxUploadSize = Number(process.env.MAX_UPLOAD_SIZE_BYTES)
+const maxUploadSize =
+	Number.isFinite(configuredMaxUploadSize) && configuredMaxUploadSize > 0
+		? configuredMaxUploadSize
+		: 1024 * 1024 * 1024
 
 createInitialUser().catch((error) => {
 	console.error('Failed to create default user:', error)
@@ -28,8 +34,10 @@ app.on(['POST', 'GET'], '/api/auth/*', (c) => {
 })
 
 app.route('/api', userRoutes)
+app.route('/api', uploadRoutes)
 
 export default {
 	fetch: app.fetch,
-	port: 3000
+	port: 3000,
+	maxRequestBodySize: maxUploadSize
 }

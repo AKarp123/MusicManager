@@ -9,7 +9,7 @@ import { type QueuedUpload, type UploadMode } from '../types/upload'
 import FolderDropdown from '@/components/FolderDropdown'
 import { useToast } from '@/context/ToastContext'
 
-const archiveExtensions = ['.zip', '.rar', '.7z']
+const archiveExtensions = ['.zip', '.rar']
 const archiveAccept =
 	'.zip,.rar,application/zip,application/vnd.rar,application/x-rar-compressed'
 
@@ -41,11 +41,18 @@ const createUploadItem = (file: File, source: UploadMode): QueuedUpload => ({
 	source
 })
 
+type UploadResponse = {
+	error?: string
+	folder?: string
+	folders?: string[]
+}
+
 export function Home() {
 	const archiveInputRef = useRef<HTMLInputElement | null>(null)
 	const folderInputRef = useRef<HTMLInputElement | null>(null)
 	const [activeMode, setActiveMode] = useState<UploadMode>('archive')
 	const [queuedUploads, setQueuedUploads] = useState<QueuedUpload[]>([])
+	const [isUploading, setIsUploading] = useState(false)
 	const { showToast } = useToast()
 
 	const totalSize = useMemo(
@@ -133,6 +140,84 @@ export function Home() {
 		setQueuedUploads([])
 	}
 
+	const uploadFiles = async (uploads: QueuedUpload[], mode: UploadMode) => {
+		const formData = new FormData()
+		formData.append('mode', mode)
+
+		for (const upload of uploads) {
+			formData.append('files', upload.file)
+
+			if (mode === 'folder') {
+				formData.append('relativePaths', upload.relativePath)
+			}
+		}
+
+		const response = await fetch('/api/upload', {
+			method: 'POST',
+			body: formData,
+			credentials: 'include'
+		})
+		const result = (await response.json().catch(() => ({}))) as UploadResponse
+
+		if (!response.ok) {
+			throw new Error(result.error || 'The upload could not be completed.')
+		}
+
+		return result.folders || (result.folder ? [result.folder] : [])
+	}
+
+	const submitUploads = async () => {
+		if (queuedUploads.length === 0 || isUploading) {
+			return
+		}
+
+		const archiveUploads = queuedUploads.filter(
+			(upload) => upload.source === 'archive'
+		)
+		const folderUploads = queuedUploads.filter(
+			(upload) => upload.source === 'folder'
+		)
+		const uploadedIds = new Set<string>()
+		const uploadedFolders: string[] = []
+
+		setIsUploading(true)
+
+		try {
+			if (archiveUploads.length > 0) {
+				uploadedFolders.push(...(await uploadFiles(archiveUploads, 'archive')))
+				archiveUploads.forEach((upload) => uploadedIds.add(upload.id))
+			}
+
+			if (folderUploads.length > 0) {
+				uploadedFolders.push(...(await uploadFiles(folderUploads, 'folder')))
+				folderUploads.forEach((upload) => uploadedIds.add(upload.id))
+			}
+
+			setQueuedUploads((uploads) =>
+				uploads.filter((upload) => !uploadedIds.has(upload.id))
+			)
+			showToast({
+				title: 'Upload complete',
+				message: `Staged ${uploadedFolders.length} folder${uploadedFolders.length === 1 ? '' : 's'} for processing.`,
+				type: 'success'
+			})
+		} catch (error) {
+			setQueuedUploads((uploads) =>
+				uploads.filter((upload) => !uploadedIds.has(upload.id))
+			)
+			showToast({
+				title: 'Upload failed',
+				message:
+					error instanceof Error
+						? error.message
+						: 'The upload could not be completed.',
+				type: 'error'
+			})
+		} finally {
+			setIsUploading(false)
+		}
+	}
+
 	return (
 		<>
 			<div className="flex flex-col gap-5 border-b border-white/20 pb-5 md:flex-row md:items-end md:justify-between">
@@ -146,6 +231,7 @@ export function Home() {
 					<button
 						className={`cursor-pointer px-4 py-2 text-sm font-semibold transition ${activeMode === 'archive' ? 'bg-white text-black' : 'bg-black text-white hover:bg-white/10'}`}
 						type="button"
+						disabled={isUploading}
 						onClick={() => setActiveMode('archive')}
 					>
 						Archive
@@ -153,6 +239,7 @@ export function Home() {
 					<button
 						className={`cursor-pointer px-4 py-2 text-sm font-semibold transition ${activeMode === 'folder' ? 'bg-white text-black' : 'bg-black text-white hover:bg-white/10'}`}
 						type="button"
+						disabled={isUploading}
 						onClick={() => setActiveMode('folder')}
 					>
 						Folder
@@ -202,6 +289,7 @@ export function Home() {
 						<button
 							className="cursor-pointer border border-white bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
 							type="button"
+							disabled={isUploading}
 							onClick={() =>
 								activeMode === 'archive'
 									? archiveInputRef.current?.click()
@@ -217,14 +305,24 @@ export function Home() {
 					<div className="border-b border-white/20 p-4">
 						<div className="flex items-center justify-between gap-3">
 							<h2 className="text-lg font-semibold">Queue</h2>
-							<button
-								className="cursor-pointer border border-white/25 px-3 py-1 text-xs font-semibold text-white transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
-								type="button"
-								disabled={queuedUploads.length === 0}
-								onClick={clearQueue}
-							>
-								Clear
-							</button>
+							<div className="flex gap-2">
+								<button
+									className="cursor-pointer border border-white bg-white px-3 py-1 text-xs font-semibold text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+									type="button"
+									disabled={queuedUploads.length === 0 || isUploading}
+									onClick={submitUploads}
+								>
+									{isUploading ? 'Uploading...' : 'Upload'}
+								</button>
+								<button
+									className="cursor-pointer border border-white/25 px-3 py-1 text-xs font-semibold text-white transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
+									type="button"
+									disabled={queuedUploads.length === 0 || isUploading}
+									onClick={clearQueue}
+								>
+									Clear
+								</button>
+							</div>
 						</div>
 						<p className="mt-2 text-sm text-white/60">
 							{queuedUploads.length} file{queuedUploads.length === 1 ? '' : 's'}{' '}

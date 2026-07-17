@@ -69,7 +69,8 @@ updated.
 - TypeScript is used throughout the rewrite. Keep public boundaries typed and
   avoid `any`.
 - Prettier uses tabs, single quotes, no semicolons, and an 80-character print
-  width. Run the local formatter rather than manually fighting formatting.
+  width. Run the local formatter on every changed source file before handing
+  off; do not rely on manual formatting.
 - Follow the existing split: page-level UI in `frontend/src/pages`, reusable UI
   in `frontend/src/components`, shared frontend state in `frontend/src/context`,
   routes in `backend/src/routes`, and backend integrations/utilities in
