@@ -53,6 +53,7 @@ export function Home() {
 	const [activeMode, setActiveMode] = useState<UploadMode>('archive')
 	const [queuedUploads, setQueuedUploads] = useState<QueuedUpload[]>([])
 	const [isUploading, setIsUploading] = useState(false)
+	const [isClearingTemp, setIsClearingTemp] = useState(false)
 	const { showToast } = useToast()
 
 	const totalSize = useMemo(
@@ -138,6 +139,47 @@ export function Home() {
 
 	const clearQueue = () => {
 		setQueuedUploads([])
+	}
+
+	const clearStagedUploads = async () => {
+		if (isClearingTemp || isUploading) {
+			return
+		}
+
+		setIsClearingTemp(true)
+
+		try {
+			const response = await fetch('/api/clear', {
+				method: 'POST',
+				credentials: 'include'
+			})
+
+			if (!response.ok) {
+				const result = (await response
+					.json()
+					.catch(() => ({}))) as UploadResponse
+				throw new Error(
+					result.error || 'The staged uploads could not be cleared.'
+				)
+			}
+
+			showToast({
+				title: 'Staged uploads cleared',
+				message: 'The temporary files for this session were removed.',
+				type: 'success'
+			})
+		} catch (error) {
+			showToast({
+				title: 'Unable to clear staged uploads',
+				message:
+					error instanceof Error
+						? error.message
+						: 'The staged uploads could not be cleared.',
+				type: 'error'
+			})
+		} finally {
+			setIsClearingTemp(false)
+		}
 	}
 
 	const uploadFiles = async (uploads: QueuedUpload[], mode: UploadMode) => {
@@ -321,6 +363,14 @@ export function Home() {
 									onClick={clearQueue}
 								>
 									Clear
+								</button>
+								<button
+									className="cursor-pointer border border-red-300/60 px-3 py-1 text-xs font-semibold text-red-100 transition hover:bg-red-100 hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
+									type="button"
+									disabled={isUploading || isClearingTemp}
+									onClick={clearStagedUploads}
+								>
+									{isClearingTemp ? 'Clearing Temp...' : 'Clear Temp'}
 								</button>
 							</div>
 						</div>

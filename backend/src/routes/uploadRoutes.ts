@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { auth } from '../utils/auth'
 import {
+	clearSessionUploadDirectory,
 	extractArchiveUpload,
 	getSessionUploadDirectory,
 	stageFolderUpload,
@@ -14,6 +15,22 @@ const isUploadMode = (value: string): value is UploadMode =>
 
 const isFile = (value: FormDataEntryValue): value is File =>
 	value instanceof File
+
+uploadRoutes.post('/clear', async (c) => {
+	const session = await auth.api.getSession({ headers: c.req.raw.headers })
+
+	if (!session) {
+		return c.json({ error: 'Authentication is required.' }, 401)
+	}
+
+	try {
+		await clearSessionUploadDirectory(session.session.id)
+		return c.body(null, 204)
+	} catch (error) {
+		console.error('Failed to clear staged uploads:', error)
+		return c.json({ error: 'The staged uploads could not be cleared.' }, 500)
+	}
+})
 
 uploadRoutes.post('/upload', async (c) => {
 	const session = await auth.api.getSession({ headers: c.req.raw.headers })

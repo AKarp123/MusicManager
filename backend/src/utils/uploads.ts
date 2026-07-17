@@ -168,6 +168,12 @@ export const getSessionUploadDirectory = async (
 	return directory
 }
 
+export const clearSessionUploadDirectory = async (
+	sessionId: string
+): Promise<void> => {
+	await rm(join(tempDirectory, sessionId), { recursive: true, force: true })
+}
+
 export const stageFolderUpload = async (
 	sessionDirectory: string,
 	files: File[],
