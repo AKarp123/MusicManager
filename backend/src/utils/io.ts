@@ -1,4 +1,5 @@
 import { readdir } from 'fs/promises'
+import { resolve } from 'path'
 
 /**
  * Directory & File Utilities
@@ -7,9 +8,10 @@ import { readdir } from 'fs/promises'
 const baseDirectory = '/library'
 
 const normalizePath = (path: string): string => {
-	if (!path.startsWith(baseDirectory)) {
+	if (!resolve(path).startsWith(resolve(baseDirectory))) {
 		throw new Error(`Path must start with ${baseDirectory}`)
 	}
+
 	return path
 }
 
