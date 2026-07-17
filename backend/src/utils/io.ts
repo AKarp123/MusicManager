@@ -12,7 +12,7 @@ export type DirectoryEntry = {
 
 const baseDirectory = '/library'
 
-const normalizePath = (path: string): string => {
+export const normalizePath = (path: string): string => {
 	if (!resolve(path).startsWith(resolve(baseDirectory))) {
 		throw new Error(`Path must start with ${baseDirectory}`)
 	}
@@ -21,17 +21,11 @@ const normalizePath = (path: string): string => {
 }
 
 export const listDirectories = async (path: string): Promise<string[]> => {
-	try {
-		path = normalizePath(path)
-		const entries = await readdir(path, { withFileTypes: true })
-		const directories = entries
-			.filter((entry) => entry.isDirectory())
-			.map((entry) => entry.name)
-		return directories
-	} catch (error) {
-		console.error(`Error reading directory ${path}:`, error)
-		throw error
-	}
+	const entries = await readdir(path, { withFileTypes: true })
+	const directories = entries
+		.filter((entry) => entry.isDirectory())
+		.map((entry) => entry.name)
+	return directories
 }
 /**
  *
@@ -41,16 +35,10 @@ export const listDirectories = async (path: string): Promise<string[]> => {
 export const readDirectory = async (
 	path: string
 ): Promise<DirectoryEntry[]> => {
-	try {
-		path = normalizePath(path)
-		const entries = await readdir(path, { withFileTypes: true })
-		const directoryEntries = entries.map((entry) => ({
-			name: entry.name,
-			isDirectory: entry.isDirectory()
-		}))
-		return directoryEntries
-	} catch (error) {
-		console.error(`Error reading directory ${path}:`, error)
-		throw error
-	}
+	const entries = await readdir(path, { withFileTypes: true })
+	const directoryEntries = entries.map((entry) => ({
+		name: entry.name,
+		isDirectory: entry.isDirectory()
+	}))
+	return directoryEntries
 }

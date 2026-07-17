@@ -1,5 +1,4 @@
 import { Hono } from 'hono'
-import { auth } from '../utils/auth.ts'
 import {
 	clearSessionUploadDirectory,
 	extractArchiveUpload,
@@ -7,8 +6,9 @@ import {
 	stageFolderUpload,
 	type UploadMode
 } from '../utils/uploads.ts'
+import { type AuthEnv, requireAuth } from '../utils/requireAuth.ts'
 
-const uploadRoutes = new Hono()
+const uploadRoutes = new Hono<AuthEnv>()
 
 const isUploadMode = (value: string): value is UploadMode =>
 	value === 'archive' || value === 'folder'
@@ -16,15 +16,11 @@ const isUploadMode = (value: string): value is UploadMode =>
 const isFile = (value: FormDataEntryValue): value is File =>
 	value instanceof File
 
+uploadRoutes.use('*', requireAuth)
+
 uploadRoutes.post('/clear', async (c) => {
-	const session = await auth.api.getSession({ headers: c.req.raw.headers })
-
-	if (!session) {
-		return c.json({ error: 'Authentication is required.' }, 401)
-	}
-
 	try {
-		await clearSessionUploadDirectory(session.session.id)
+		await clearSessionUploadDirectory(c.get('session').session.id)
 		return c.body(null, 204)
 	} catch (error) {
 		console.error('Failed to clear staged uploads:', error)
@@ -33,12 +29,6 @@ uploadRoutes.post('/clear', async (c) => {
 })
 
 uploadRoutes.post('/upload', async (c) => {
-	const session = await auth.api.getSession({ headers: c.req.raw.headers })
-
-	if (!session) {
-		return c.json({ error: 'Authentication is required.' }, 401)
-	}
-
 	let formData: FormData
 	try {
 		formData = await c.req.raw.formData()
@@ -58,7 +48,9 @@ uploadRoutes.post('/upload', async (c) => {
 	}
 
 	try {
-		const sessionDirectory = await getSessionUploadDirectory(session.session.id)
+		const sessionDirectory = await getSessionUploadDirectory(
+			c.get('session').session.id
+		)
 
 		if (mode === 'archive') {
 			const folders: string[] = []
