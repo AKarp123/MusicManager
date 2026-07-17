@@ -35,12 +35,89 @@ const isArchive = (file: File) => {
 	return archiveExtensions.some((extension) => name.endsWith(extension))
 }
 
-const createUploadItem = (file: File, source: UploadMode): QueuedUpload => ({
-	id: `${source}-${file.name}-${file.size}-${file.lastModified}-${file.webkitRelativePath}`,
+type SelectedFile = {
+	file: File
+	relativePath?: string
+}
+
+type DroppedFileEntry = {
+	isFile: true
+	isDirectory: false
+	name: string
+	file: (
+		successCallback: (file: File) => void,
+		errorCallback: (error: DOMException) => void
+	) => void
+}
+
+type DroppedDirectoryEntry = {
+	isFile: false
+	isDirectory: true
+	name: string
+	createReader: () => {
+		readEntries: (
+			successCallback: (entries: DroppedEntry[]) => void,
+			errorCallback: (error: DOMException) => void
+		) => void
+	}
+}
+
+type DroppedEntry = DroppedFileEntry | DroppedDirectoryEntry
+
+type DroppedDataTransferItem = {
+	webkitGetAsEntry?: () => DroppedEntry | null
+}
+
+const createUploadItem = (
+	file: File,
+	source: UploadMode,
+	relativePath = file.webkitRelativePath || file.name
+): QueuedUpload => ({
+	id: `${source}-${file.name}-${file.size}-${file.lastModified}-${relativePath}`,
 	file,
-	relativePath: file.webkitRelativePath || file.name,
+	relativePath,
 	source
 })
+
+const readEntries = async (
+	reader: ReturnType<DroppedDirectoryEntry['createReader']>
+): Promise<DroppedEntry[]> => {
+	const entries: DroppedEntry[] = []
+
+	while (true) {
+		const batch = await new Promise<DroppedEntry[]>((resolve, reject) => {
+			reader.readEntries(resolve, reject)
+		})
+
+		if (batch.length === 0) {
+			return entries
+		}
+
+		entries.push(...batch)
+	}
+}
+
+const getDroppedFiles = async (
+	entry: DroppedEntry,
+	parentPath = ''
+): Promise<SelectedFile[]> => {
+	const relativePath = parentPath ? `${parentPath}/${entry.name}` : entry.name
+
+	if (entry.isFile) {
+		const file = await new Promise<File>((resolve, reject) => {
+			entry.file(resolve, reject)
+		})
+
+		return [{ file, relativePath }]
+	}
+
+	const entries = await readEntries(entry.createReader())
+	const files = await Promise.all(
+		entries.map((child) => getDroppedFiles(child, relativePath))
+	)
+
+	return files.flat()
+}
 
 type UploadResponse = {
 	error?: string
@@ -75,7 +152,7 @@ const uploadFiles = async (
 		})
 
 		onProgress(1)
-		return data.folders || (data.folder ? [data.folder] : [])
+		return data.folders || []
 	} catch (error) {
 		if (axios.isAxiosError<UploadResponse>(error)) {
 			throw new Error(
@@ -102,8 +179,9 @@ export function Home() {
 		[queuedUploads]
 	)
 
-	const addFiles = (files: File[], source: UploadMode) => {
-		const validFiles = source === 'archive' ? files.filter(isArchive) : files
+	const addFiles = (files: SelectedFile[], source: UploadMode) => {
+		const validFiles =
+			source === 'archive' ? files.filter(({ file }) => isArchive(file)) : files
 		const skippedCount = files.length - validFiles.length
 
 		if (validFiles.length === 0) {
@@ -118,7 +196,9 @@ export function Home() {
 			return
 		}
 
-		const nextUploads = validFiles.map((file) => createUploadItem(file, source))
+		const nextUploads = validFiles.map(({ file, relativePath }) =>
+			createUploadItem(file, source, relativePath)
+		)
 
 		setQueuedUploads((currentUploads) => {
 			const uploadsById = new Map(
@@ -164,18 +244,56 @@ export function Home() {
 	}, [queuedUploads])
 
 	const handleArchiveChange = (event: ChangeEvent<HTMLInputElement>) => {
-		addFiles(Array.from(event.target.files ?? []), 'archive')
+		addFiles(
+			Array.from(event.target.files ?? []).map((file) => ({ file })),
+			'archive'
+		)
 		event.target.value = ''
 	}
 
 	const handleFolderChange = (event: ChangeEvent<HTMLInputElement>) => {
-		addFiles(Array.from(event.target.files ?? []), 'folder')
+		addFiles(
+			Array.from(event.target.files ?? []).map((file) => ({ file })),
+			'folder'
+		)
 		event.target.value = ''
 	}
 
-	const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+	const handleDrop = async (event: DragEvent<HTMLDivElement>) => {
 		event.preventDefault()
-		addFiles(Array.from(event.dataTransfer.files), activeMode)
+		const mode = activeMode
+		const items = Array.from(
+			event.dataTransfer.items
+		) as unknown as DroppedDataTransferItem[]
+		const entries = items
+			.map((item) => item.webkitGetAsEntry?.())
+			.filter(
+				(entry): entry is DroppedEntry => entry !== null && entry !== undefined
+			)
+
+		try {
+			if (mode === 'folder' && entries.length > 0) {
+				const files = await Promise.all(
+					entries.map((entry) => getDroppedFiles(entry))
+				)
+				addFiles(files.flat(), mode)
+				return
+			}
+
+			addFiles(
+				Array.from(event.dataTransfer.files).map((file) => ({ file })),
+				mode
+			)
+		} catch (error) {
+			showToast({
+				title: 'Unable to read dropped folder',
+				message:
+					error instanceof Error
+						? error.message
+						: 'The dropped folder could not be read.',
+				type: 'error'
+			})
+		}
 	}
 
 	const clearQueue = () => {
