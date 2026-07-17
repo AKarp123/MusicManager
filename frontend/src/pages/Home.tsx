@@ -5,6 +5,7 @@ import {
 	useRef,
 	useState
 } from 'react'
+import axios from 'axios'
 import { type QueuedUpload, type UploadMode } from '../types/upload'
 import FolderDropdown from '@/components/FolderDropdown'
 import { useToast } from '@/context/ToastContext'
@@ -47,12 +48,52 @@ type UploadResponse = {
 	folders?: string[]
 }
 
+const uploadFiles = async (
+	uploads: QueuedUpload[],
+	mode: UploadMode,
+	onProgress: (progress: number) => void
+): Promise<string[]> => {
+	const formData = new FormData()
+	formData.append('mode', mode)
+
+	for (const upload of uploads) {
+		formData.append('files', upload.file)
+
+		if (mode === 'folder') {
+			formData.append('relativePaths', upload.relativePath)
+		}
+	}
+
+	try {
+		const { data } = await axios.post<UploadResponse>('/api/upload', formData, {
+			withCredentials: true,
+			onUploadProgress: (event) => {
+				if (event.total) {
+					onProgress(Math.min(event.loaded / event.total, 1))
+				}
+			}
+		})
+
+		onProgress(1)
+		return data.folders || (data.folder ? [data.folder] : [])
+	} catch (error) {
+		if (axios.isAxiosError<UploadResponse>(error)) {
+			throw new Error(
+				error.response?.data.error || 'The upload could not be completed.'
+			)
+		}
+
+		throw error
+	}
+}
+
 export function Home() {
 	const archiveInputRef = useRef<HTMLInputElement | null>(null)
 	const folderInputRef = useRef<HTMLInputElement | null>(null)
 	const [activeMode, setActiveMode] = useState<UploadMode>('archive')
 	const [queuedUploads, setQueuedUploads] = useState<QueuedUpload[]>([])
 	const [isUploading, setIsUploading] = useState(false)
+	const [uploadProgress, setUploadProgress] = useState<number | null>(null)
 	const [isClearingTemp, setIsClearingTemp] = useState(false)
 	const { showToast } = useToast()
 
@@ -181,32 +222,6 @@ export function Home() {
 		}
 	}
 
-	const uploadFiles = async (uploads: QueuedUpload[], mode: UploadMode) => {
-		const formData = new FormData()
-		formData.append('mode', mode)
-
-		for (const upload of uploads) {
-			formData.append('files', upload.file)
-
-			if (mode === 'folder') {
-				formData.append('relativePaths', upload.relativePath)
-			}
-		}
-
-		const response = await fetch('/api/upload', {
-			method: 'POST',
-			body: formData,
-			credentials: 'include'
-		})
-		const result = (await response.json().catch(() => ({}))) as UploadResponse
-
-		if (!response.ok) {
-			throw new Error(result.error || 'The upload could not be completed.')
-		}
-
-		return result.folders || (result.folder ? [result.folder] : [])
-	}
-
 	const submitUploads = async () => {
 		if (queuedUploads.length === 0 || isUploading) {
 			return
@@ -220,17 +235,40 @@ export function Home() {
 		)
 		const uploadedIds = new Set<string>()
 		const uploadedFolders: string[] = []
+		const totalUploadBytes = Math.max(
+			queuedUploads.reduce((total, upload) => total + upload.file.size, 0),
+			1
+		)
+		const archiveUploadBytes = archiveUploads.reduce(
+			(total, upload) => total + upload.file.size,
+			0
+		)
 
 		setIsUploading(true)
+		setUploadProgress(0)
 
 		try {
 			if (archiveUploads.length > 0) {
-				uploadedFolders.push(...(await uploadFiles(archiveUploads, 'archive')))
+				uploadedFolders.push(
+					...(await uploadFiles(archiveUploads, 'archive', (progress) => {
+						setUploadProgress(
+							(archiveUploadBytes * progress) / totalUploadBytes
+						)
+					}))
+				)
 				archiveUploads.forEach((upload) => uploadedIds.add(upload.id))
 			}
 
 			if (folderUploads.length > 0) {
-				uploadedFolders.push(...(await uploadFiles(folderUploads, 'folder')))
+				uploadedFolders.push(
+					...(await uploadFiles(folderUploads, 'folder', (progress) => {
+						setUploadProgress(
+							(archiveUploadBytes +
+								(totalUploadBytes - archiveUploadBytes) * progress) /
+								totalUploadBytes
+						)
+					}))
+				)
 				folderUploads.forEach((upload) => uploadedIds.add(upload.id))
 			}
 
@@ -256,6 +294,7 @@ export function Home() {
 			})
 		} finally {
 			setIsUploading(false)
+			setUploadProgress(null)
 		}
 	}
 
@@ -374,9 +413,25 @@ export function Home() {
 							</div>
 						</div>
 						<p className="mt-2 text-sm text-white/60">
-							{queuedUploads.length} file{queuedUploads.length === 1 ? '' : 's'}{' '}
-							/ {formatBytes(totalSize)}
+							{isUploading && uploadProgress !== null
+								? `Uploading ${Math.round(uploadProgress * 100)}%`
+								: `${queuedUploads.length} file${queuedUploads.length === 1 ? '' : 's'} / ${formatBytes(totalSize)}`}
 						</p>
+						{isUploading && uploadProgress !== null ? (
+							<div
+								className="mt-2 h-1 overflow-hidden bg-white/20"
+								role="progressbar"
+								aria-label="Upload progress"
+								aria-valuemin={0}
+								aria-valuemax={100}
+								aria-valuenow={Math.round(uploadProgress * 100)}
+							>
+								<div
+									className="h-full bg-white transition-[width] duration-150"
+									style={{ width: `${uploadProgress * 100}%` }}
+								/>
+							</div>
+						) : null}
 					</div>
 
 					<div className="min-h-0 flex-1 overflow-y-auto">
