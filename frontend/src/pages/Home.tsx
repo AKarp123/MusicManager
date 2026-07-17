@@ -165,7 +165,6 @@ export function Home() {
 
 			showToast({
 				title: 'Staged uploads cleared',
-				message: 'The temporary files for this session were removed.',
 				type: 'success'
 			})
 		} catch (error) {

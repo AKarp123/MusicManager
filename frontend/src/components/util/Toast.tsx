@@ -56,7 +56,7 @@ const DisplayToast = ({
 				onClose()
 			}
 		}}
-		className="ToastRoot inline-flex items-center gap-3 rounded-md border border-white/25 bg-black/85 p-3 text-white backdrop-blur-md min-w-50"
+		className="ToastRoot inline-flex items-center gap-3 rounded-md border border-white/25 bg-black/85 p-3 text-white backdrop-blur-sm min-w-50 backdrop-opacity-55"
 	>
 		{iconDisplay({ type })}
 		<div className="min-w-0 flex-1">
