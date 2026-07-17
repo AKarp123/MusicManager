@@ -66,7 +66,7 @@ uploadRoutes.post('/upload', async (c) => {
 				folders.push(await extractArchiveUpload(sessionDirectory, file))
 			}
 
-			return c.json({ folder: folders[0], folders }, 201)
+			return c.json({ folders }, 201)
 		}
 
 		const relativePaths = formData

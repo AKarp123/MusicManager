@@ -1,30 +1,17 @@
-import {
-	access,
-	lstat,
-	mkdir,
-	readdir,
-	rename,
-	rm,
-	writeFile
-} from 'node:fs/promises'
-import { basename, extname, join, relative, resolve } from 'node:path'
+import { lstat, mkdir, readdir, rename, rm, writeFile } from 'node:fs/promises'
+import { basename, dirname, extname, join } from 'node:path'
 import { createExtractorFromFile } from 'node-unrar-js'
 import * as unzipper from 'unzipper'
 
 const tempDirectory = '/temp'
 const archiveExtensions = ['.zip', '.rar']
 
-export type UploadMode = 'archive' | 'folder'
-
-const isWithinDirectory = (path: string, directory: string): boolean => {
-	const pathRelativeToDirectory = relative(directory, path)
-
-	return (
-		pathRelativeToDirectory !== '' &&
-		!pathRelativeToDirectory.startsWith('..') &&
-		!pathRelativeToDirectory.startsWith('/')
-	)
+const isMacMetadata = (name: string): boolean => {
+	const normalizedName = name.toLowerCase()
+	return normalizedName === '__macosx' || normalizedName === '.ds_store'
 }
+
+export type UploadMode = 'archive' | 'folder'
 
 const normalizeRelativePath = (path: string): string => {
 	const normalizedPath = path.replaceAll('\\', '/')
@@ -42,34 +29,6 @@ const normalizeRelativePath = (path: string): string => {
 	return normalizedPath
 }
 
-const hasPath = async (path: string): Promise<boolean> => {
-	try {
-		await access(path)
-		return true
-	} catch {
-		return false
-	}
-}
-
-const uniqueDirectory = async (
-	parentDirectory: string,
-	requestedName: string
-): Promise<{ name: string; path: string }> => {
-	const safeName = requestedName || 'upload'
-	let suffix = 0
-
-	while (true) {
-		const name = suffix === 0 ? safeName : `${safeName} (${suffix + 1})`
-		const path = join(parentDirectory, name)
-
-		if (!(await hasPath(path))) {
-			return { name, path }
-		}
-
-		suffix += 1
-	}
-}
-
 const archiveDirectoryName = (filename: string): string => {
 	const lowercaseFilename = filename.toLowerCase()
 	const extension = archiveExtensions.find((candidate) =>
@@ -78,6 +37,20 @@ const archiveDirectoryName = (filename: string): string => {
 	const name = basename(filename, extension ?? extname(filename)).trim()
 
 	return name.replaceAll(/[<>:"/\\|?*]/g, '_') || 'archive'
+}
+
+const removeMacMetadata = async (directory: string): Promise<void> => {
+	const entries = await readdir(directory, { withFileTypes: true })
+
+	for (const entry of entries) {
+		const path = join(directory, entry.name)
+
+		if (isMacMetadata(entry.name)) {
+			await rm(path, { recursive: true, force: true })
+		} else if (entry.isDirectory()) {
+			await removeMacMetadata(path)
+		}
+	}
 }
 
 const assertSafeExtractedFiles = async (directory: string): Promise<void> => {
@@ -191,30 +164,25 @@ export const stageFolderUpload = async (
 	}
 
 	const rootNames = [...new Set(paths.map((path) => path.split('/')[0]))]
-	for (const rootName of rootNames) {
-		if (await hasPath(join(sessionDirectory, rootName))) {
-			throw new Error(`An upload named "${rootName}" already exists.`)
-		}
-	}
 
 	const stagingDirectory = stageDirectory(sessionDirectory)
 	await mkdir(stagingDirectory, { recursive: true })
 
 	try {
 		for (const [index, file] of files.entries()) {
-			const targetPath = resolve(stagingDirectory, paths[index])
+			const targetPath = join(stagingDirectory, paths[index])
 
-			if (!isWithinDirectory(targetPath, stagingDirectory)) {
-				throw new Error('Upload path is outside the staging directory.')
-			}
-
-			await mkdir(resolve(targetPath, '..'), { recursive: true })
+			await mkdir(dirname(targetPath), { recursive: true })
 			await writeFile(targetPath, new Uint8Array(await file.arrayBuffer()), {
-				flag: 'wx'
+				flag: 'w'
 			})
 		}
 
 		for (const rootName of rootNames) {
+			await rm(join(sessionDirectory, rootName), {
+				recursive: true,
+				force: true
+			})
 			await rename(
 				join(stagingDirectory, rootName),
 				join(sessionDirectory, rootName)
@@ -249,7 +217,7 @@ export const extractArchiveUpload = async (
 
 	try {
 		await writeFile(archivePath, new Uint8Array(await file.arrayBuffer()), {
-			flag: 'wx'
+			flag: 'w'
 		})
 
 		if (lowercaseFilename.endsWith('.zip')) {
@@ -258,14 +226,43 @@ export const extractArchiveUpload = async (
 			await extractRarArchive(archivePath, extractedDirectory)
 		}
 
+		await removeMacMetadata(extractedDirectory)
 		await assertSafeExtractedFiles(extractedDirectory)
-		const destination = await uniqueDirectory(
-			sessionDirectory,
-			archiveDirectoryName(filename)
-		)
-		await rename(extractedDirectory, destination.path)
+		const extractedItems = await readdir(extractedDirectory, {
+			withFileTypes: true
+		})
 
-		return destination.name
+		if (extractedItems.length === 0) {
+			throw new Error('Archive does not contain any files or folders.')
+		}
+
+		const shouldWrapContents =
+			extractedItems.some((item) => item.isFile()) ||
+			extractedItems.filter((item) => item.isDirectory()).length > 1
+		const destination = join(
+			sessionDirectory,
+			shouldWrapContents
+				? archiveDirectoryName(filename)
+				: extractedItems[0].name
+		)
+		await rm(destination, { recursive: true, force: true })
+
+		if (shouldWrapContents) {
+			await mkdir(destination, { recursive: true })
+
+			for (const item of extractedItems) {
+				await rename(
+					join(extractedDirectory, item.name),
+					join(destination, item.name)
+				)
+			}
+
+			return destination
+		}
+
+		await rename(join(extractedDirectory, extractedItems[0].name), destination)
+
+		return destination
 	} finally {
 		await rm(stagingDirectory, { recursive: true, force: true })
 	}
