@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { listDirectories } from '../utils/io'
+import { listDirectories } from '../utils/io.ts'
 
 const directoryRoutes = new Hono()
 

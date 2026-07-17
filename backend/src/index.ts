@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { auth } from './utils/auth'
-import { createInitialUser } from './init'
-import userRoutes from './routes/userRoutes'
-import uploadRoutes from './routes/uploadRoutes'
+import { auth } from './utils/auth.ts'
+import { createInitialUser } from './init.ts'
+import userRoutes from './routes/userRoutes.ts'
+import uploadRoutes from './routes/uploadRoutes.ts'
 import { getMigrations } from 'better-auth/db/migration'
 
 const app = new Hono()
@@ -16,10 +16,6 @@ const initializeDatabase = async () => {
 
 initializeDatabase().catch((error) => {
 	console.error('Failed to initialize the database:', error)
-})
-
-app.get('/', (c) => {
-	return c.text('Hello Hono!')
 })
 
 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'

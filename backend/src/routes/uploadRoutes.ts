@@ -1,12 +1,12 @@
 import { Hono } from 'hono'
-import { auth } from '../utils/auth'
+import { auth } from '../utils/auth.ts'
 import {
 	clearSessionUploadDirectory,
 	extractArchiveUpload,
 	getSessionUploadDirectory,
 	stageFolderUpload,
 	type UploadMode
-} from '../utils/uploads'
+} from '../utils/uploads.ts'
 
 const uploadRoutes = new Hono()
 

@@ -1,6 +1,6 @@
 import { betterAuth } from 'better-auth'
 import { username } from 'better-auth/plugins'
-import { db } from './db'
+import { db } from './db.ts'
 
 const baseURL = process.env.BETTER_AUTH_URL || 'http://localhost:3000'
 const frontendURL = process.env.FRONTEND_URL || 'http://localhost:5173'
