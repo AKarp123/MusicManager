@@ -1,0 +1,10 @@
+{
+	"nodeModulesDir": "auto",
+	"tasks": {
+		"dev": "deno run --watch --allow-env --allow-ffi --allow-net --allow-read --allow-run --allow-write src/index.ts",
+		"lint": "deno run --allow-env --allow-read --allow-sys npm:eslint .",
+		"lint:fix": "deno run --allow-env --allow-read --allow-write --allow-sys npm:eslint . --fix",
+		"format": "deno run --allow-env --allow-read --allow-write --allow-sys npm:prettier --write .",
+		"format:check": "deno run --allow-env --allow-read --allow-sys npm:prettier --check ."
+	}
+}

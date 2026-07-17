@@ -17,8 +17,8 @@ This checkout is the `v2-rewrite`; it intentionally differs from the legacy
 
 - `frontend/`: React 19 + TypeScript + Vite application, using Wouter for
   routing, Tailwind CSS, Better Auth client, and the `@` alias for `src/`.
-- `backend/`: Bun + TypeScript service built on Hono, Better Auth, Drizzle, and
-  SQLite (`better-sqlite3`). API routes are mounted below `/api`; auth is below
+- `backend/`: Deno + TypeScript service built on Hono, Better Auth, and SQLite
+  (`node:sqlite`). API routes are mounted below `/api`; auth is below
   `/api/auth`.
 - The frontend proxies `/api` to `VITE_BACKEND_URL` or `http://backend:3000`.
 - Library filesystem access belongs in backend utilities. Keep the configured
@@ -31,10 +31,10 @@ the current TypeScript architecture.
 
 ## Local development
 
-Use Bun within each application directory:
+Use Deno for the backend and Bun for the frontend:
 
 ```sh
-cd backend && bun install && bun run dev
+cd backend && deno task dev
 cd frontend && bun install && bun run dev
 ```
 
@@ -46,17 +46,16 @@ Never commit `.env` files or credentials.
 ## Dependencies and containers
 
 Docker services use their own `node_modules` volumes. When adding, removing, or
-updating a package, run the relevant Bun install command from inside the
-corresponding Docker container so the container volume is updated. Do not rely
-on a host-side install alone; it will not update the dependencies used by the
-running container. Commit the appropriate package manifest and lockfile changes.
+updating a backend package, refresh Deno's cache in the backend container so
+the container volume is updated. Do not rely on a host-side cache alone. Commit
+the appropriate package manifest and `deno.lock` changes.
 
 ## Quality checks
 
 Run checks from their respective directories before handing off changes:
 
 ```sh
-cd backend && bun run lint && bun run format:check
+cd backend && deno task lint && deno task format:check
 cd frontend && bun run lint && bun run format:check && bun run build
 ```
 

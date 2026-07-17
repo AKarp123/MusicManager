@@ -1,4 +1,4 @@
-FROM oven/bun:alpine
+FROM denoland/deno:alpine-2.6.4
 
 
 
@@ -13,9 +13,9 @@ ENV FORCE_COLOR=1
 
 WORKDIR /app
 
-RUN bun install
+RUN deno cache --node-modules-dir=auto src/index.ts
 
 
 EXPOSE 3000
 
-CMD ["bun", "run", "dev"]
+CMD ["task", "dev"]

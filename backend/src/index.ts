@@ -4,16 +4,18 @@ import { auth } from './utils/auth'
 import { createInitialUser } from './init'
 import userRoutes from './routes/userRoutes'
 import uploadRoutes from './routes/uploadRoutes'
+import { getMigrations } from 'better-auth/db/migration'
 
 const app = new Hono()
-const configuredMaxUploadSize = Number(process.env.MAX_UPLOAD_SIZE_BYTES)
-const maxUploadSize =
-	Number.isFinite(configuredMaxUploadSize) && configuredMaxUploadSize > 0
-		? configuredMaxUploadSize
-		: 1024 * 1024 * 1024
 
-createInitialUser().catch((error) => {
-	console.error('Failed to create default user:', error)
+const initializeDatabase = async () => {
+	const { runMigrations } = await getMigrations(auth.options)
+	await runMigrations()
+	await createInitialUser()
+}
+
+initializeDatabase().catch((error) => {
+	console.error('Failed to initialize the database:', error)
 })
 
 app.get('/', (c) => {
@@ -36,8 +38,4 @@ app.on(['POST', 'GET'], '/api/auth/*', (c) => {
 app.route('/api', userRoutes)
 app.route('/api', uploadRoutes)
 
-export default {
-	fetch: app.fetch,
-	port: 3000,
-	maxRequestBodySize: maxUploadSize
-}
+Deno.serve({ port: 3000 }, app.fetch)

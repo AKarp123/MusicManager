@@ -1,7 +1,5 @@
 import { auth } from './utils/auth'
 import { db } from './utils/db'
-import { user } from '../auth-schema'
-import { password } from 'bun'
 
 const DEFAULT_USERNAME = process.env.DEFAULT_USER_NAME || 'admin'
 
@@ -12,16 +10,16 @@ export const createInitialUser = async () => {
 		return
 	}
 
-	const existingUser = await db.query.user.findFirst({
-		where: (user, { eq }) => eq(user.username, DEFAULT_USERNAME)
-	})
+	const existingUser = db
+		.prepare('select id from user where username = ? limit 1')
+		.get(DEFAULT_USERNAME)
 	if (existingUser) {
 		console.log('Default user already exists; skipping creation.')
 		return
 	} else {
 		try {
 			const ctx = await auth.$context
-			const hashedPassword = await password.hash(defaultPassword)
+			const hashedPassword = await ctx.password.hash(defaultPassword)
 			console.log('Default user created with username:', DEFAULT_USERNAME)
 			const newUser = await ctx.internalAdapter.createUser({
 				username: DEFAULT_USERNAME,

@@ -1,13 +1,7 @@
-To install dependencies:
-
-```sh
-bun install
-```
-
 To run:
 
 ```sh
-bun run dev
+deno task dev
 ```
 
 open http://localhost:3000

@@ -6,8 +6,8 @@ import {
 	rename,
 	rm,
 	writeFile
-} from 'fs/promises'
-import { basename, extname, join, relative, resolve } from 'path'
+} from 'node:fs/promises'
+import { basename, extname, join, relative, resolve } from 'node:path'
 import { createExtractorFromFile } from 'node-unrar-js'
 import * as unzipper from 'unzipper'
 
