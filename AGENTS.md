@@ -74,6 +74,8 @@ updated.
   in `frontend/src/components`, shared frontend state in `frontend/src/context`,
   routes in `backend/src/routes`, and backend integrations/utilities in
   `backend/src/utils`.
+- Do not extract helper functions for a single use. Consider a helper only when
+  it can be reused across multiple functions.
 - The frontend ESLint configuration rejects `console.log`; use the toast/error
   UI or `console.warn`/`console.error` as appropriate.
 - Preserve authentication on user-facing application routes and avoid exposing
