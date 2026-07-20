@@ -8,6 +8,7 @@ import {
 import axios from 'axios'
 import { type QueuedUpload, type UploadMode } from '../types/upload'
 import FolderDropdown from '@/components/FolderDropdown'
+import { useAppState } from '@/context/AppStateContext'
 import { useToast } from '@/context/ToastContext'
 
 const archiveExtensions = ['.zip', '.rar']
@@ -173,6 +174,7 @@ export function Home() {
 	const [uploadProgress, setUploadProgress] = useState<number | null>(null)
 	const [isClearingTemp, setIsClearingTemp] = useState(false)
 	const { showToast } = useToast()
+	const { dispatch } = useAppState()
 
 	const totalSize = useMemo(
 		() => queuedUploads.reduce((total, upload) => total + upload.file.size, 0),
@@ -326,6 +328,7 @@ export function Home() {
 				title: 'Staged uploads cleared',
 				type: 'success'
 			})
+			dispatch({ type: 'clearCurrentDirectories' })
 		} catch (error) {
 			showToast({
 				title: 'Unable to clear staged uploads',
@@ -393,6 +396,10 @@ export function Home() {
 			setQueuedUploads((uploads) =>
 				uploads.filter((upload) => !uploadedIds.has(upload.id))
 			)
+			dispatch({
+				type: 'addCurrentDirectories',
+				directories: uploadedFolders
+			})
 			showToast({
 				title: 'Upload complete',
 				message: `Staged ${uploadedFolders.length} folder${uploadedFolders.length === 1 ? '' : 's'} for processing.`,

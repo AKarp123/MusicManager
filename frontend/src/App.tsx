@@ -5,6 +5,7 @@ import AuthRoute from '@/components/AuthRoute'
 import { Home } from '@/pages/Home'
 import { authClient } from '@/authClient'
 import Navbar from '@/components/Navbar'
+import { AppStateProvider } from '@/context/AppStateProvider'
 import { ToastProvider } from '@/context/ToastProvider'
 
 function AppContainer({ children }: { children: ReactNode }) {
@@ -38,9 +39,11 @@ function App() {
 				<Route path="/login" component={Login} />
 				<Route path="/">
 					<AuthRoute>
-						<AppContainer>
-							<Home />
-						</AppContainer>
+						<AppStateProvider>
+							<AppContainer>
+								<Home />
+							</AppContainer>
+						</AppStateProvider>
 					</AuthRoute>
 				</Route>
 			</Router>
