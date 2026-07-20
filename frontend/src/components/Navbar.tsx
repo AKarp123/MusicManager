@@ -8,6 +8,10 @@ const routes = [
 	{
 		name: 'Upload',
 		path: '/'
+	},
+	{
+		name: 'Process',
+		path: '/process'
 	}
 ]
 
