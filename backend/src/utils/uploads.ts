@@ -1,15 +1,10 @@
 import { lstat, mkdir, readdir, rename, rm, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, join } from 'node:path'
-import { createExtractorFromFile } from 'node-unrar-js'
+import { createExtractorFromFile } from 'node-unrar-js/esm'
 import * as unzipper from 'unzipper'
 
 const tempDirectory = '/temp'
 const archiveExtensions = ['.zip', '.rar']
-
-const isMacMetadata = (name: string): boolean => {
-	const normalizedName = name.toLowerCase()
-	return normalizedName === '__macosx' || normalizedName === '.ds_store'
-}
 
 export type UploadMode = 'archive' | 'folder'
 
@@ -40,15 +35,19 @@ const archiveDirectoryName = (filename: string): string => {
 }
 
 const removeMacMetadata = async (directory: string): Promise<void> => {
-	const entries = await readdir(directory, { withFileTypes: true })
+	const entries = await readdir(directory, {
+		withFileTypes: true,
+		recursive: true
+	})
 
 	for (const entry of entries) {
 		const path = join(directory, entry.name)
 
-		if (isMacMetadata(entry.name)) {
+		if (
+			entry.name.toLowerCase() === '__macosx' ||
+			entry.name.toLowerCase() === '.ds_store'
+		) {
 			await rm(path, { recursive: true, force: true })
-		} else if (entry.isDirectory()) {
-			await removeMacMetadata(path)
 		}
 	}
 }
