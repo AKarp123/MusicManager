@@ -19,7 +19,6 @@ directoryRoutes.get('/directory/:directoryId', async (c) => {
 	})
 
 	return c.json({
-		path,
 		directories
 	})
 })
