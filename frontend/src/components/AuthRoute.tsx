@@ -30,8 +30,8 @@ export default function AuthRoute({ children }: AuthRouteProps) {
 
 	// If not authenticated, redirect to login with return path
 	if (!isAuthenticated) {
-		const returnPath = encodeURIComponent(location)
-		return <Redirect to={`/login?return=${returnPath}`} />
+		const returnPath = encodeURIComponent(location.split('/')[1] || '')
+		return <Redirect to="/login" state={{ returnPath }} />
 	}
 
 	// If authenticated, render children

@@ -17,9 +17,9 @@ export default function Login() {
 				const session = await authClient.getSession()
 				if (session?.data?.session) {
 					// User is already logged in, redirect to return path or home
-					const params = new URLSearchParams(window.location.search)
-					const returnPath = params.get('return')
-					setLocation(returnPath || '/')
+
+					const returnPath = history.state?.returnPath || '/'
+					setLocation(returnPath)
 				}
 			} catch (error) {
 				console.error(error)
@@ -44,9 +44,8 @@ export default function Login() {
 			setIsSubmitting(false)
 		} else if (data?.user) {
 			// Successfully signed in, redirect to return path or home
-			const params = new URLSearchParams(window.location.search)
-			const returnPath = params.get('return')
-			setLocation(returnPath || '/')
+			const returnPath = history.state?.returnPath || '/'
+			setLocation(returnPath)
 		} else {
 			setStatus('Signed in.')
 			setIsSubmitting(false)
