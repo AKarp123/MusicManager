@@ -76,6 +76,10 @@ updated.
   `backend/src/utils`.
 - Do not extract helper functions for a single use. Consider a helper only when
   it can be reused across multiple functions.
+- Keep code concise and readable, avoiding unnecessary complexity. But keep clarity in mind
+and don't sacrifice readability for the sake of brevity.
+- Follow consistent naming conventions throughout the codebase.
+- Avoid unnecessary comments, when the code is very obvious for what it does. 
 - The frontend ESLint configuration rejects `console.log`; use the toast/error
   UI or `console.warn`/`console.error` as appropriate.
 - Preserve authentication on user-facing application routes and avoid exposing
