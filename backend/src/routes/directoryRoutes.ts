@@ -1,15 +1,19 @@
 import { Hono } from 'hono'
-import { listDirectories, normalizePath } from '../utils/io.ts'
+import { listDirectories, validatePath } from '../utils/io.ts'
+import { requireAuth, type AuthEnv } from '../utils/requireAuth.ts'
 
-const directoryRoutes = new Hono()
+const directoryRoutes = new Hono<AuthEnv>()
 
-directoryRoutes.get('/directory/:directoryId', async (c) => {
-	const b64path = c.req.param('directoryId')
-	const path = atob(b64path)
+directoryRoutes.use(requireAuth)
+
+directoryRoutes.get('/directory', async (c) => {
+	const path = c.req.query('path')
+	if (!path) return c.body(null, 400)
+
 	try {
-		normalizePath(path)
+		validatePath(path)
 	} catch (error) {
-		console.error(`Error normalizing path ${path}:`, error)
+		console.error(`Error validating path ${path}:`, error)
 		return c.body(null, 400)
 	}
 
@@ -22,3 +26,21 @@ directoryRoutes.get('/directory/:directoryId', async (c) => {
 		directories
 	})
 })
+
+directoryRoutes.get('/directory/info', async (c) => {
+	const path = c.req.query('path')
+	if (!path) return c.body(null, 400)
+
+	try {
+		validatePath(path)
+	} catch (error) {
+		console.error(`Error validating path ${path}:`, error)
+		return c.body(null, 400)
+	}
+
+	return c.json({
+		path
+	})
+})
+
+export default directoryRoutes

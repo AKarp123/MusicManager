@@ -4,9 +4,12 @@ import { auth } from './utils/auth.ts'
 import { createInitialUser } from './init.ts'
 import userRoutes from './routes/userRoutes.ts'
 import uploadRoutes from './routes/uploadRoutes.ts'
-import { getMigrations } from 'better-auth/db/migration'
+import directoryRoutes from './routes/directoryRoutes.ts'
 
-const app = new Hono()
+import { getMigrations } from 'better-auth/db/migration'
+import { AuthEnv } from './utils/requireAuth.ts'
+
+const app = new Hono<AuthEnv>()
 
 const initializeDatabase = async () => {
 	const { runMigrations } = await getMigrations(auth.options)
@@ -33,5 +36,6 @@ app.on(['POST', 'GET'], '/api/auth/*', (c) => {
 
 app.route('/api', userRoutes)
 app.route('/api', uploadRoutes)
+app.route('/api', directoryRoutes)
 
 Deno.serve({ port: 3000 }, app.fetch)
