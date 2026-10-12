@@ -4,6 +4,7 @@ import Login from '@/pages/Login'
 import AuthRoute from '@/components/AuthRoute'
 import { Home } from '@/pages/Home'
 import { Process } from '@/pages/Process'
+import { Users } from '@/pages/Users'
 import { authClient } from '@/authClient'
 import Navbar from '@/components/Navbar'
 import { AppStateProvider } from '@/context/AppStateProvider'
@@ -45,6 +46,7 @@ function App() {
 								<AppContainer>
 									<Switch>
 										<Route path="/process" component={Process} />
+										<Route path="/users" component={Users} />
 										<Route path="/" component={Home} />
 									</Switch>
 								</AppContainer>

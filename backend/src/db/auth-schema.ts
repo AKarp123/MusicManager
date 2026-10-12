@@ -14,7 +14,11 @@ export const user = sqliteTable('user', {
 		.$onUpdate(() => new Date())
 		.notNull(),
 	username: text('username').unique(),
-	displayUsername: text('display_username')
+	displayUsername: text('display_username'),
+	role: text('role'),
+	banned: integer('banned', { mode: 'boolean' }).default(false),
+	banReason: text('ban_reason'),
+	banExpires: integer('ban_expires', { mode: 'timestamp_ms' })
 })
 
 export const session = sqliteTable(
@@ -29,6 +33,7 @@ export const session = sqliteTable(
 			.notNull(),
 		ipAddress: text('ip_address'),
 		userAgent: text('user_agent'),
+		impersonatedBy: text('impersonated_by'),
 		userId: text('user_id')
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' })

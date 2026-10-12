@@ -1,5 +1,5 @@
 import { betterAuth } from 'better-auth'
-import { username } from 'better-auth/plugins'
+import { admin, username } from 'better-auth/plugins'
 import { db } from './db.ts'
 
 const baseURL = process.env.BETTER_AUTH_URL || 'http://localhost:3000'
@@ -9,7 +9,7 @@ export const auth = betterAuth({
 	secret: process.env.BETTER_AUTH_SECRET || '',
 	baseURL,
 	trustedOrigins: [frontendURL],
-	plugins: [username()],
+	plugins: [username(), admin()],
 
 	disabledPaths: [
 		'/is-username-available',

@@ -1,8 +1,8 @@
-import { createAuthClient } from 'better-auth/client'
-import { usernameClient } from 'better-auth/client/plugins'
+import { createAuthClient } from 'better-auth/react'
+import { adminClient, usernameClient } from 'better-auth/client/plugins'
 
 export const authClient = createAuthClient({
 	baseURL: '', // Use relative URLs - Vite will proxy to backend
 	basePath: '/api/auth',
-	plugins: [usernameClient()]
+	plugins: [usernameClient(), adminClient()]
 })
