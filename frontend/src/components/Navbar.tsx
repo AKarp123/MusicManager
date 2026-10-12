@@ -12,6 +12,10 @@ const routes = [
 	{
 		name: 'Process',
 		path: '/process'
+	},
+	{
+		name: 'Browse',
+		path: '/browse'
 	}
 ]
 
