@@ -4,19 +4,14 @@ import {
 	extractArchiveUpload,
 	getSessionUploadDirectory,
 	stageFolderUpload,
-	type UploadMode
+	isUploadMode,
+	isFile
 } from '../utils/uploads.ts'
 import { type AuthEnv, requireAuth } from '../utils/requireAuth.ts'
 
 const uploadRoutes = new Hono<AuthEnv>()
 
-const isUploadMode = (value: string): value is UploadMode =>
-	value === 'archive' || value === 'folder'
-
-const isFile = (value: FormDataEntryValue): value is File =>
-	value instanceof File
-
-uploadRoutes.use('*', requireAuth)
+uploadRoutes.use(requireAuth)
 
 uploadRoutes.post('/clear', async (c) => {
 	try {

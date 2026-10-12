@@ -1,12 +1,16 @@
 import { lstat, mkdir, readdir, rename, rm, writeFile } from 'node:fs/promises'
-import { basename, dirname, extname, join } from 'node:path'
-import { createExtractorFromFile } from 'node-unrar-js/esm'
+import { basename, dirname, join } from 'node:path'
 import * as unzipper from 'unzipper'
 
 const tempDirectory = '/temp'
-const archiveExtensions = ['.zip', '.rar']
 
 export type UploadMode = 'archive' | 'folder'
+
+export const isUploadMode = (value: string): value is UploadMode =>
+	value === 'archive' || value === 'folder'
+
+export const isFile = (value: FormDataEntryValue): value is File =>
+	value instanceof File
 
 const normalizeRelativePath = (path: string): string => {
 	const normalizedPath = path.replaceAll('\\', '/')
@@ -25,11 +29,7 @@ const normalizeRelativePath = (path: string): string => {
 }
 
 const archiveDirectoryName = (filename: string): string => {
-	const lowercaseFilename = filename.toLowerCase()
-	const extension = archiveExtensions.find((candidate) =>
-		lowercaseFilename.endsWith(candidate)
-	)
-	const name = basename(filename, extension ?? extname(filename)).trim()
+	const name = basename(filename, '.zip').trim()
 
 	return name.replaceAll(/[<>:"/\\|?*]/g, '_') || 'archive'
 }
@@ -107,27 +107,27 @@ const extractZipArchive = async (
 	await archive.extract({ path: extractedDirectory })
 }
 
-const extractRarArchive = async (
-	archivePath: string,
-	extractedDirectory: string
-): Promise<void> => {
-	const extractor = await createExtractorFromFile({
-		filepath: archivePath,
-		targetPath: extractedDirectory,
-		filenameTransform: assertSafeArchivePath
-	})
-	const { fileHeaders } = extractor.getFileList()
+// const extractRarArchive = async (
+// 	archivePath: string,
+// 	extractedDirectory: string
+// ): Promise<void> => {
+// 	const extractor = await createExtractorFromFile({
+// 		filepath: archivePath,
+// 		targetPath: extractedDirectory,
+// 		filenameTransform: assertSafeArchivePath
+// 	})
+// 	const { fileHeaders } = extractor.getFileList()
 
-	for (const fileHeader of fileHeaders) {
-		assertSafeArchivePath(fileHeader.name)
-	}
+// 	for (const fileHeader of fileHeaders) {
+// 		assertSafeArchivePath(fileHeader.name)
+// 	}
 
-	const { files } = extractor.extract()
-	for (const file of files) {
-		void file
-		// Exhausting this generator completes extraction and releases native resources.
-	}
-}
+// 	const { files } = extractor.extract()
+// 	for (const file of files) {
+// 		void file
+// 		// Exhausting this generator completes extraction and releases native resources.
+// 	}
+// }
 
 const stageDirectory = (sessionDirectory: string): string =>
 	join(sessionDirectory, `.upload-${crypto.randomUUID()}`)
@@ -201,11 +201,7 @@ export const extractArchiveUpload = async (
 	const filename = basename(file.name)
 	const lowercaseFilename = filename.toLowerCase()
 
-	if (
-		!archiveExtensions.some((extension) =>
-			lowercaseFilename.endsWith(extension)
-		)
-	) {
+	if (!lowercaseFilename.endsWith('.zip')) {
 		throw new Error(`Unsupported archive type: ${filename}`)
 	}
 
@@ -222,7 +218,7 @@ export const extractArchiveUpload = async (
 		if (lowercaseFilename.endsWith('.zip')) {
 			await extractZipArchive(archivePath, extractedDirectory)
 		} else {
-			await extractRarArchive(archivePath, extractedDirectory)
+			// await extractRarArchive(archivePath, extractedDirectory)
 		}
 
 		await removeMacMetadata(extractedDirectory)
