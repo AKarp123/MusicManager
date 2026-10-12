@@ -1,5 +1,7 @@
 import { Link } from 'wouter'
 import { authClient } from '@/authClient'
+import { Menu } from 'lucide-react'
+import { Button } from '@/components/Button'
 
 type NavbarProps = {
 	onSignOut: () => void
@@ -43,12 +45,17 @@ export default function Navbar({ onSignOut }: NavbarProps) {
 						</Link>
 					))}
 			</div>
-			<button
-				className="cursor-pointer border border-white/25 px-3 py-1 m-1 text-sm font-medium transition hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-				onClick={onSignOut}
-			>
-				Sign Out
-			</button>
+			<div className="flex items-center space-x-2">
+				<Button
+					className="m-1 border-0 px-3 py-1 text-sm font-medium"
+					variant="plain"
+					size="small"
+					onClick={onSignOut}
+				>
+					Sign Out
+				</Button>
+				<Menu />
+			</div>
 		</nav>
 	)
 }

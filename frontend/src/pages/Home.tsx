@@ -8,6 +8,7 @@ import {
 import axios from 'axios'
 import { type QueuedUpload, type UploadMode } from '../types/upload'
 import FolderDropdown from '@/components/FolderDropdown'
+import { Button } from '@/components/Button'
 import { useAppState } from '@/context/AppStateContext'
 import { useToast } from '@/context/ToastContext'
 
@@ -491,8 +492,9 @@ export function Home() {
 							<p className="text-sm leading-6 text-white/70"></p>
 						</div>
 
-						<button
-							className="cursor-pointer border border-white bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+						<Button
+							className="px-5 focus-visible:ring-white"
+							variant="primary"
 							type="button"
 							disabled={isUploading}
 							onClick={() =>
@@ -502,7 +504,7 @@ export function Home() {
 							}
 						>
 							{activeMode === 'archive' ? 'Choose Archives' : 'Choose Folder'}
-						</button>
+						</Button>
 					</div>
 				</div>
 
@@ -511,30 +513,33 @@ export function Home() {
 						<div className="flex items-center justify-between gap-3">
 							<h2 className="text-lg font-semibold">Queue</h2>
 							<div className="flex gap-2">
-								<button
-									className="cursor-pointer border border-white bg-white px-3 py-1 text-xs font-semibold text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+								<Button
+									variant="primary"
+									size="small"
 									type="button"
 									disabled={queuedUploads.length === 0 || isUploading}
 									onClick={submitUploads}
 								>
 									{isUploading ? 'Uploading...' : 'Upload'}
-								</button>
-								<button
-									className="cursor-pointer border border-white/25 px-3 py-1 text-xs font-semibold text-white transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
+								</Button>
+								<Button
+									variant="secondary"
+									size="small"
 									type="button"
 									disabled={queuedUploads.length === 0 || isUploading}
 									onClick={clearQueue}
 								>
 									Clear
-								</button>
-								<button
-									className="cursor-pointer border border-red-300/60 px-3 py-1 text-xs font-semibold text-red-100 transition hover:bg-red-100 hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
+								</Button>
+								<Button
+									variant="danger"
+									size="small"
 									type="button"
 									disabled={isUploading || isClearingTemp}
 									onClick={clearStagedUploads}
 								>
 									{isClearingTemp ? 'Clearing Temp...' : 'Clear Temp'}
-								</button>
+								</Button>
 							</div>
 						</div>
 						<p className="mt-2 text-sm text-white/60">

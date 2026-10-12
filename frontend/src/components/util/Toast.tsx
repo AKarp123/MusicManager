@@ -1,4 +1,4 @@
-import * as Toast from '@radix-ui/react-toast'
+import { Toast } from 'radix-ui'
 import { CheckIcon, CircleAlertIcon, InfoIcon } from 'raster-react'
 import './Toast.css'
 import { type ToastOptions, type ToastType } from '../../context/ToastContext'

@@ -1,4 +1,4 @@
-import * as ToastPrimitive from '@radix-ui/react-toast'
+import { Toast as ToastPrimitive } from 'radix-ui'
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import DisplayToast from '@/components/util/Toast'
 import { ToastContext, type ToastOptions } from './ToastContext'

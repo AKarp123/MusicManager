@@ -1,7 +1,8 @@
 import { type FormEvent, useState, useEffect } from 'react'
-import * as Form from '@radix-ui/react-form'
+import { Form } from 'radix-ui'
 import { useLocation } from 'wouter'
 import { authClient } from '@/authClient'
+import { Button } from '@/components/Button'
 
 export default function Login() {
 	const [, setLocation] = useLocation()
@@ -115,13 +116,14 @@ export default function Login() {
 					</Form.Field>
 
 					<Form.Submit asChild>
-						<button
-							className="inline-flex w-full items-center justify-center border border-white bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+						<Button
+							className="inline-flex w-full items-center justify-center focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+							variant="primary"
 							type="submit"
 							disabled={isSubmitting}
 						>
 							{isSubmitting ? 'Signing in...' : 'Sign in'}
-						</button>
+						</Button>
 					</Form.Submit>
 				</Form.Root>
 

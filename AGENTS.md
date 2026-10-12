@@ -74,6 +74,15 @@ updated.
   in `frontend/src/components`, shared frontend state in `frontend/src/context`,
   routes in `backend/src/routes`, and backend integrations/utilities in
   `backend/src/utils`.
+- Use the installed `radix-ui` package for accessible interactive primitives
+  (for example `import { Dialog } from 'radix-ui'`). Prefer its primitives over
+  custom implementations for dialogs, menus, tabs, selects, tooltips, and
+  similar interactions. Style them with the existing Tailwind design.
+- Before adding repeated UI, check whether it belongs in
+  `frontend/src/components`. Build reusable components when the same behavior
+  or visual treatment appears in multiple places; keep page-specific UI local
+  when reuse is speculative. Extend shared components through typed props and
+  variants rather than duplicating markup and styles.
 - Do not extract helper functions for a single use. Consider a helper only when
   it can be reused across multiple functions.
 - Keep code concise and readable, avoiding unnecessary complexity. But keep clarity in mind
