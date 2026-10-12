@@ -1,5 +1,5 @@
-import { readdir } from 'fs/promises'
-import { resolve } from 'path'
+import { readdir } from 'node:fs/promises'
+import { resolve } from 'node:path'
 
 /**
  * Directory & File Utilities
@@ -10,11 +10,13 @@ export type DirectoryEntry = {
 	isDirectory: boolean
 }
 
-const baseDirectory = '/library'
+export const validDirectories = ['/library', '/temp']
 
-export const normalizePath = (path: string): string => {
-	if (!resolve(path).startsWith(resolve(baseDirectory))) {
-		throw new Error(`Path must start with ${baseDirectory}`)
+export const validatePath = (path: string): string => {
+	if (!resolve(path).startsWith(resolve(validDirectories[0]))) {
+		throw new Error(
+			`Path must start with one of ${validDirectories.join(', ')}`
+		)
 	}
 
 	return path
@@ -28,7 +30,7 @@ export const listDirectories = async (path: string): Promise<string[]> => {
 	return directories
 }
 /**
- *
+ * Read directory and returns its contents
  * @param path - Directory Path
  * @returns List of file and directory names
  */
